@@ -3,6 +3,9 @@ import {Inter} from "next/font/google";
 import "./globals.css";
 import {SocketProvider} from "@/providers/SocketProvider";
 import {ClerkProvider} from "@clerk/nextjs";
+import {ruRU} from "@clerk/localizations";
+import {ThemeProvider} from "@/providers/ThemeProvider";
+import {ModalProvider} from "@/providers/ModalProvider";
 
 const inter = Inter({subsets: ["latin"]});
 
@@ -17,15 +20,22 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<ClerkProvider>
+		<ClerkProvider localization={ruRU}>
 			<html
 				className='dark'
 				lang='en'
 			>
 				<body className={inter.className}>
-					<SocketProvider>{children}</SocketProvider>
+					<ThemeProvider
+						attribute='class'
+						defaultTheme='dark'
+						storageKey='discord-theme'
+					>
+						<SocketProvider>{children}</SocketProvider>
+					</ThemeProvider>
+					<ModalProvider />
 				</body>
-			</html>{" "}
+			</html>
 		</ClerkProvider>
 	);
 }

@@ -1,10 +1,26 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const ChatCard = () => {
+interface Props {
+	authorName: string;
+	authorPic: string | null;
+	authorUsername: string;
+	lastMessage: string;
+	lastMessageTime: string;
+	variant: "chat" | "user";
+}
+
+const ChatCard = ({
+	authorName,
+	authorPic,
+	authorUsername,
+	lastMessage,
+	lastMessageTime,
+	variant,
+}: Props) => {
 	return (
 		<Link
-			href={"/"}
+			href={`/chat/${authorUsername}`}
 			className='px-3 py-3 rounded-lg flex items-center hover:bg-neutral-800 transition border-b'
 		>
 			<div className='flex items-center gap-2.5 w-full'>
@@ -12,18 +28,25 @@ const ChatCard = () => {
 					<Image
 						className='rounded-full object-top'
 						fill
-						alt='user name'
-						src={
-							"https://i.pinimg.com/564x/a8/2f/bc/a82fbcc0c3ed77b1a740d3b0d213729d.jpg"
-						}
+						alt={authorName}
+						src={authorPic || "NO_IMAGE"}
 					/>
 				</div>
 				<div className='w-full'>
 					<div className='flex items-start justify-between'>
-						<h3 className='font-semibold'> Tenderlybae*</h3>
-						<p className='text-xs text-neutral-400'>10:33</p>
+						<h3 className='font-semibold'>{authorName}</h3>
+						{variant === "chat" && (
+							<p className='text-xs text-neutral-400'>{lastMessageTime}</p>
+						)}
 					</div>
-					<p className='font-normal mt-1'>привввееет</p>
+					{variant === "chat" && (
+						<p className='font-normal mt-1'>{lastMessage}</p>
+					)}
+					{variant === "user" && (
+						<p className='font-normal mt-1 text-neutral-400'>
+							@${authorUsername}
+						</p>
+					)}
 				</div>
 			</div>
 		</Link>
