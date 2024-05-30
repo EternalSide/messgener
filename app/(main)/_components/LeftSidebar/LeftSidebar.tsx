@@ -1,20 +1,34 @@
+"use client";
 import LeftSidebarSearch from "./LeftSidebarSearch";
-import ChatCard from "@/components/chat/ChatCard";
-import {ScrollArea} from "@/components/ui/scroll-area";
 import LeftSidebarMenu from "./LeftSidebarMenu";
-import {createProfile} from "@/lib/create-profile";
 import LeftSidebarContent from "./LeftSidebarContent";
+import {useState} from "react";
+import {SideBarVariant} from "@/types";
+import {User} from "@prisma/client";
 
-const LeftSidebar = async () => {
-	const currentUser = await createProfile();
+interface Props {
+	currentUser: User;
+	chats: any;
+}
+
+const LeftSidebar = ({currentUser, chats}: Props) => {
+	const [state, setState] = useState<SideBarVariant>("chats");
 
 	return (
-		<div className='w-[390px] bg-[#212121] h-full fixed left-0 top-0 border-r border-neutral-700 px-0 py-1.5'>
+		<div className='w-[390px] bg-white dark:bg-[#212121] h-full fixed left-0 top-0 border-r border-neutral-300 dark:border-neutral-700 px-0 py-1.5'>
 			<div className='flex items-center gap-2.5 pr-4 pl-2.5'>
-				<LeftSidebarMenu username={currentUser.id} />
+				<LeftSidebarMenu
+					currentUser={currentUser}
+					state={state}
+					setState={setState}
+				/>
 				<LeftSidebarSearch />
 			</div>
-			<LeftSidebarContent currentUser={currentUser} />
+			<LeftSidebarContent
+				currentUser={currentUser}
+				state={state}
+				chats={chats}
+			/>
 		</div>
 	);
 };

@@ -2,7 +2,7 @@ import {Search} from "lucide-react";
 
 const LeftSidebarSearch = () => {
 	return (
-		<div className='bg-[#2c2c2c] flex h-[45px] flex-1 items-center rounded-3xl px-4 w-full'>
+		<div className='bg-neutral-200 dark:bg-[#2c2c2c] flex h-[45px] flex-1 items-center rounded-3xl px-4 w-full'>
 			<Search className='h-6 w-6 text-neutral-400' />
 			<input
 				// value={searchValue}

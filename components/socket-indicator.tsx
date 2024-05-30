@@ -20,7 +20,7 @@ export const SocketIndicator = () => {
 	return (
 		<Badge
 			variant='outline'
-			className='bg-emerald-600 text-white border-none'
+			className='dark:bg-primary bg-[#3390ec] text-white border-none'
 		>
 			connected
 		</Badge>

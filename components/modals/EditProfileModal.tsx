@@ -9,14 +9,14 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import {zodResolver} from "@hookform/resolvers/zod";
+import qs from "query-string";
 import {useForm} from "react-hook-form";
 import {z} from "zod";
-
+import axios from "axios";
 import {Button} from "@/components/ui/button";
 import {
 	Form,
 	FormControl,
-	FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
@@ -24,44 +24,48 @@ import {
 } from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import {useEffect} from "react";
+import {useRouter} from "next/navigation";
 
 const formSchema = z.object({
 	name: z.string().min(2, {
 		message: "name must be at least 2 characters.",
 	}),
+	username: z.string().min(5, {
+		message: "name must be at least 5 characters.",
+	}),
 });
 
 const EditProfileModal = () => {
 	const {isOpen, onClose, type, data} = useModal();
+	const router = useRouter();
+
 	const form = useForm({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
 			name: data?.user?.name || "",
+			username: data?.user?.username || "",
 		},
 	});
 
 	useEffect(() => {
 		if (data?.user) {
 			form.setValue("name", data.user.name);
+			form.setValue("username", data.user.username);
 		}
 	}, [form, data?.user]);
 
 	const isModalOpen = isOpen && type === "editProfile";
+
 	const onSubmit = async (values: z.infer<typeof formSchema>) => {
-		// try {
-		// 	const url = qs.stringifyUrl({
-		// 		url: `/api/channels/${channel?.id}`,
-		// 		query: {
-		// 			serverId: server?.id,
-		// 		},
-		// 	});
-		// 	await axios.patch(url, values);
-		// 	form.reset();
-		// 	router.refresh();
-		// 	onClose();
-		// } catch (error) {
-		// 	console.log(error);
-		// }
+		try {
+			await axios.patch(`/api/user/${data?.user?.id}`, values);
+
+			form.reset();
+			router.refresh();
+			onClose();
+		} catch (error) {
+			console.log(error);
+		}
 	};
 
 	const handleClose = () => {
@@ -74,7 +78,7 @@ const EditProfileModal = () => {
 			open={isModalOpen}
 			onOpenChange={handleClose}
 		>
-			<DialogContent className='p-0 overflow-hidden'>
+			<DialogContent className='p-0 overflow-hidden bg-white dark:bg-[#212121]'>
 				<DialogHeader className='pt-8 px-6'>
 					<DialogTitle className='text-2xl text-center font-normal'>
 						Редактировать профиль
@@ -85,7 +89,7 @@ const EditProfileModal = () => {
 						onSubmit={form.handleSubmit(onSubmit)}
 						className='space-y-8'
 					>
-						<div className='space-y-8 px-6'>
+						<div className='space-y-6 px-6'>
 							<FormField
 								control={form.control}
 								name='name'
@@ -97,8 +101,28 @@ const EditProfileModal = () => {
 										<FormControl>
 											<Input
 												disabled={false}
-												className='bg-neutral-900 border-0 focus-visible:ring-0 focus-visible:ring-offset-0'
+												className='dark:bg-neutral-900 bg-neutral-200/50 border-0 focus-visible:ring-0 focus-visible:ring-offset-0'
 												placeholder='Введите ваше имя'
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name='username'
+								render={({field}) => (
+									<FormItem>
+										<FormLabel className='uppercase text-xs font-bold'>
+											Имя пользователя
+										</FormLabel>
+										<FormControl>
+											<Input
+												disabled={false}
+												className='dark:bg-neutral-900 bg-neutral-200/50 border-0 focus-visible:ring-0 focus-visible:ring-offset-0'
+												placeholder='Введите ваше имя пользователя'
 												{...field}
 											/>
 										</FormControl>
@@ -110,7 +134,7 @@ const EditProfileModal = () => {
 						<DialogFooter className='px-6 py-4'>
 							<Button
 								variant='default'
-								disabled={true}
+								disabled={form.formState.isLoading}
 							>
 								Сохранить
 							</Button>

@@ -26,5 +26,23 @@ export const createProfile = async () => {
 		},
 	});
 
+	// Избранное
+	const conversation = await db.conversation.create({
+		data: {
+			userOneId: newProfile.id,
+			userTwoId: newProfile.id,
+		},
+		include: {
+			userOne: true,
+			userTwo: true,
+		},
+	});
+	await db.directMessage.create({
+		data: {
+			content: "Hi world!",
+			conversationId: conversation.id,
+			userId: newProfile.id,
+		},
+	});
 	return newProfile;
 };

@@ -9,3 +9,4 @@ export type NextApiResponseServerIo = NextApiResponse & {
 		};
 	};
 };
+export type SideBarVariant = "chats" | "users";

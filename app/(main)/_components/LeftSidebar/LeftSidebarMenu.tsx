@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {Switch} from "@/components/ui/switch";
 import {
+	ArrowLeft,
 	LogOut,
 	Menu,
 	MessageCircleIcon,
@@ -19,45 +20,73 @@ import {SignOutButton} from "@clerk/nextjs";
 import {useTheme} from "next-themes";
 import {useRouter} from "next/navigation";
 import {useModal} from "@/hooks/useModalStore";
+import {SideBarVariant} from "@/types";
+import {User} from "@prisma/client";
+import {SetStateAction} from "react";
 
-const LeftSidebarMenu = ({username}: any) => {
+interface Props {
+	currentUser: User;
+	setState: React.Dispatch<SetStateAction<SideBarVariant>>;
+	state: SideBarVariant;
+}
+
+const LeftSidebarMenu = ({currentUser, setState, state}: Props) => {
 	const {theme, setTheme} = useTheme();
 	const isDarkTheme = theme === "dark";
 	const router = useRouter();
 	const {onOpen} = useModal();
+
+	// Стрелка назад
+	if (state !== "chats") {
+		return (
+			<button
+				className='dark:hover:bg-neutral-700/50 hover:bg-neutral-200/50 transition p-2 rounded-full flex items-center justify-center'
+				onClick={() => setState("chats")}
+			>
+				<ArrowLeft className='h-6 w-6 text-neutral-400' />
+			</button>
+		);
+	}
+
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger>
-				<button className='hover:bg-neutral-700/50 transition p-2 rounded-full flex items-center justify-center'>
-					<Menu className='h-6 w-6 text-neutral-400' />
-				</button>
+			<DropdownMenuTrigger className='dark:hover:bg-neutral-700/50 hover:bg-neutral-200/50 transition p-2 rounded-full flex items-center justify-center'>
+				<Menu className='h-6 w-6 text-neutral-400' />
 			</DropdownMenuTrigger>
-			<DropdownMenuContent className='w-[270px] px-1.5 py-2 bg-[#242424] opacity-[99%] ml-4 rounded-lg'>
+			<DropdownMenuContent className='w-[270px] px-1.5 py-2 bg-[#fdfdfd] dark:bg-[#242424] opacity-[99%] ml-4 rounded-lg'>
 				<DropdownMenuItem
 					onClick={() => router.push(`/`)}
 					className='flex items-center gap-4'
 				>
 					<MessageCircleIcon className='h-5 w-5 text-neutral-400' /> Чаты
-				</DropdownMenuItem>
+				</DropdownMenuItem>{" "}
 				<DropdownMenuItem
-					onClick={() => router.push(`/chat/${username}`)}
-					className='flex items-center gap-4'
-				>
-					<Star className='h-5 w-5 text-neutral-400' /> Избранное
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => router.push(`/users`)}
+					onClick={() => setState("users")}
 					className='flex items-center gap-4'
 				>
 					<Users className='h-5 w-5 text-neutral-400' /> Пользователи
 				</DropdownMenuItem>
 				<DropdownMenuItem
-					onClick={() => setTheme(isDarkTheme ? "light" : "dark")}
+					onClick={() => router.push(`/chat/${currentUser.username}`)}
+					className='flex items-center gap-4'
+				>
+					<Star className='h-5 w-5 text-neutral-400' /> Избранное
+				</DropdownMenuItem>
+				<DropdownMenuItem
+					onClick={(e) => {
+						e.preventDefault();
+						setTheme(isDarkTheme ? "light" : "dark");
+					}}
 					className='flex items-center justify-between'
 				>
 					<div className='flex items-center gap-4'>
 						<Moon className='h-5 w-5 text-neutral-400' />
-						<label htmlFor='darkmode-mode'>Ночная тема</label>
+						<label
+							className='cursor-pointer'
+							htmlFor='darkmode-mode'
+						>
+							Ночная тема
+						</label>
 					</div>
 					<Switch
 						checked={isDarkTheme ? true : false}
@@ -65,7 +94,7 @@ const LeftSidebarMenu = ({username}: any) => {
 					/>
 				</DropdownMenuItem>
 				<DropdownMenuItem
-					onClick={() => onOpen("editProfile", {user: {name: username}})}
+					onClick={() => onOpen("editProfile", {user: currentUser})}
 				>
 					<div className='flex items-center gap-4'>
 						<Settings className='h-5 w-5 text-neutral-400' /> Настройки
