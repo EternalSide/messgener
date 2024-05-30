@@ -10,57 +10,76 @@ import {Input} from "@/components/ui/input";
 import {EmojiPicker} from "../EmojiPicker";
 import {SendHorizonal} from "lucide-react";
 import {Button} from "../ui/button";
-import {useChats} from "@/hooks/useChats";
+import {useQueryClient} from "@tanstack/react-query";
+import {createNewConversation} from "@/lib/actions/conversation.action";
+import {messageSchema} from "@/lib/validation";
+import {User} from "@prisma/client";
 
 interface ChatInputProps {
-	apiUrl: string;
-	query: Record<string, any>;
-	name: string;
+	users: User[];
+	conversationId: string | null;
 }
 
-const formSchema = z.object({
-	content: z.string().min(1),
-});
-
-export const ChatInput = ({apiUrl, query, name}: ChatInputProps) => {
+export const ChatInput = ({users, conversationId}: ChatInputProps) => {
+	const queryClient = useQueryClient();
 	const router = useRouter();
-
-	const form = useForm<z.infer<typeof formSchema>>({
-		resolver: zodResolver(formSchema),
+	const form = useForm<z.infer<typeof messageSchema>>({
+		resolver: zodResolver(messageSchema),
 		defaultValues: {
 			content: "",
 		},
 	});
 
-	const isLoading = form.formState.isSubmitting;
-	const {userChats, setUserChats} = useChats();
-
-	const onSubmit = async (values: z.infer<typeof formSchema>) => {
+	const onSubmit = async (values: z.infer<typeof messageSchema>) => {
 		try {
+			const isFirstMessage = conversationId === null;
+			let initialConversation;
+			let firstChat: any;
+			const chats: any = queryClient.getQueriesData({queryKey: ["chats"]});
+
+			if (isFirstMessage) {
+				initialConversation = await createNewConversation(
+					users[0].id,
+					users[1].id
+				);
+			}
+
 			const url = qs.stringifyUrl({
-				url: apiUrl,
-				query,
+				url: "/api/socket/direct-messages",
+				query: {
+					conversationId: isFirstMessage
+						? initialConversation?.id!
+						: conversationId,
+				},
 			});
 
 			const {data} = await axios.post(url, values);
+			const {conversation, message} = data;
 
-			const {conversation: newConversation, message} = data;
-			const chats = [newConversation, ...userChats];
+			if (isFirstMessage) {
+				firstChat = {
+					...conversation,
+					directMessages: [message],
+				};
+				const otherChats = chats.filter(
+					(chat: any) => chat.id !== firstChat.id
+				);
+				queryClient.setQueryData(["chats"], () => [firstChat, ...otherChats]);
+			} else {
+				const currentChat = chats.find(
+					(chat: any) => chat.id === conversation.id
+				);
+				currentChat.directMessages.push(message);
 
-			const currentChat = userChats.find(
-				(chat: any) => chat.id === newConversation.id
-			);
-			currentChat.directMessages.push(message);
+				const otherChats = chats.filter(
+					(chat: any) => chat.id !== currentChat.id
+				);
+				queryClient.setQueryData(["chats"], () => [currentChat, ...otherChats]);
+			}
 
-			const otherChats = userChats.filter(
-				(chat: any) => chat.id !== currentChat.id
-			);
-
-			const sortedMessages = [currentChat, ...otherChats];
-			setUserChats(sortedMessages);
-
+			queryClient.invalidateQueries({queryKey: ["chats"]});
 			form.reset();
-			router.refresh();
+			if (isFirstMessage) return router.refresh();
 		} catch (e) {
 			console.log(e);
 		}
@@ -79,17 +98,10 @@ export const ChatInput = ({apiUrl, query, name}: ChatInputProps) => {
 						<FormItem className='flex-1 flex'>
 							<FormControl>
 								<div className='relative p-4 pr-2 w-full'>
-									{/* <button
-										type='button'
-										onClick={() => onOpen("messageFile", {apiUrl, query})}
-										className='absolute top-7 left-8 h-[24px] w-[24px] bg-zinc-500 dark:bg-zinc-400 hover:bg-zinc-600 dark:hover:bg-zinc-300 transition rounded-full p-1 flex items-center justify-center'
-									>
-										<Plus className='text-white dark:text-[#313338]' />
-									</button> */}
 									<Input
-										disabled={isLoading}
+										disabled={form.formState.isSubmitting}
 										className='px-12 text-base py-8 border-none placeholder:text-base border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-zinc-600 dark:text-zinc-200'
-										placeholder={`Сообщение ${name}`}
+										placeholder={`Введите сообщение...`}
 										{...field}
 									/>
 									<div className='absolute top-9 left-8'>

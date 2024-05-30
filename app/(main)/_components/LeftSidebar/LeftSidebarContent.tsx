@@ -2,12 +2,12 @@ import {MotionDiv} from "@/components/MotionDiv";
 import ChatCard from "@/components/chat/ChatCard";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {SAVED_CHAT_PICTURE, sidebarAnimations} from "@/constants";
-import {useChats} from "@/hooks/useChats";
-import {getAllUsers} from "@/lib/actions/user.action";
-import {formatDate} from "@/lib/time";
+import useSidebar from "@/hooks/useSidebar";
+import {formatDate} from "@/lib/utils";
 import {SideBarVariant} from "@/types";
 import {User} from "@prisma/client";
-import {useEffect, useState} from "react";
+import {useQueryClient} from "@tanstack/react-query";
+import {useEffect} from "react";
 
 interface Props {
 	currentUser: User;
@@ -16,37 +16,8 @@ interface Props {
 }
 
 const LeftSidebarContent = ({currentUser, state, chats}: Props) => {
-	const [users, setUsers] = useState<User[] | []>([]);
-
-	// initial chats loading
-
-	const {userChats, setUserChats} = useChats();
-
-	useEffect(() => {
-		if (chats || userChats) {
-			const sortedMessages = chats.sort((a: any, b: any) => {
-				const lastMessagea = a.directMessages[a.directMessages.length - 1];
-				const at = lastMessagea.createdAt;
-				const lastMessageb = b.directMessages[b.directMessages.length - 1];
-				const bt = lastMessageb.createdAt;
-				return new Date(bt).getTime() - new Date(at).getTime();
-			});
-
-			setUserChats(sortedMessages);
-		}
-	}, []);
-
-	useEffect(() => {
-		const getUsers = async () => {
-			const allUsers = await getAllUsers();
-			setUsers(allUsers);
-			return users;
-		};
-
-		if (state === "users") {
-			getUsers();
-		}
-	}, [state]);
+	const users = useSidebar(state);
+	const queryClient = useQueryClient();
 
 	return (
 		<MotionDiv
@@ -72,25 +43,29 @@ const LeftSidebarContent = ({currentUser, state, chats}: Props) => {
 					))}
 				{state === "chats" && (
 					<ul>
-						{userChats.map((chat: any) => {
+						{chats.map((chat: any) => {
 							const lastMessage =
 								chat.directMessages[chat.directMessages.length - 1];
 							return (
 								<ChatCard
 									key={chat.userTwo.id}
 									authorName={
-										chat.userTwo.name === currentUser.name
+										chat.userTwo.name === currentUser?.name
 											? "Избранное"
 											: chat.userTwo.name
 									}
 									authorPic={
-										chat.userTwo.name === currentUser.name
+										chat.userTwo.name === currentUser?.name
 											? SAVED_CHAT_PICTURE
 											: chat.userTwo.imageUrl
 									}
 									authorUsername={chat.userTwo.username}
 									lastMessage={lastMessage?.content}
-									lastMessageTime={formatDate(lastMessage.createdAt)}
+									lastMessageTime={
+										lastMessage?.createdAt
+											? formatDate(lastMessage.createdAt)
+											: null
+									}
 									variant='chat'
 								/>
 							);

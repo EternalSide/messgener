@@ -2,7 +2,7 @@ import {NextApiRequest} from "next";
 import {NextApiResponseServerIo} from "@/types";
 
 import {db} from "@/lib/db";
-import {currentProfilePages} from "@/lib/current-profile-pages";
+import {getCurrentUserForPages} from "@/lib/actions/user.action";
 
 export default async function handler(
 	req: NextApiRequest,
@@ -12,7 +12,7 @@ export default async function handler(
 		return res.status(405).json({error: "Method not allowed"});
 
 	try {
-		const profile = await currentProfilePages(req);
+		const profile = await getCurrentUserForPages(req);
 
 		const {content} = req.body;
 		const {conversationId} = req.query;

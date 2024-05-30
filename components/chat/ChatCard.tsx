@@ -10,7 +10,7 @@ interface Props {
 	authorPic: string | null;
 	authorUsername: string;
 	lastMessage: string;
-	lastMessageTime: string;
+	lastMessageTime: string | null;
 	variant: "chat" | "user";
 }
 
@@ -49,7 +49,7 @@ const ChatCard = ({
 						<h3 className={cn("font-semibold", isActive && "text-white")}>
 							{authorName}
 						</h3>
-						{variant === "chat" && (
+						{variant === "chat" && lastMessageTime && (
 							<p
 								className={cn(
 									"text-xs text-neutral-400",
@@ -61,7 +61,12 @@ const ChatCard = ({
 						)}
 					</div>
 					{variant === "chat" && (
-						<p className={cn("font-normal mt-1", isActive && "text-white")}>
+						<p
+							className={cn(
+								"font-normal mt-1 line-clamp-1",
+								isActive && "text-white"
+							)}
+						>
 							{lastMessage}
 						</p>
 					)}

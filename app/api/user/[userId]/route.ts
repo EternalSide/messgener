@@ -1,4 +1,4 @@
-import {getCurrentUser} from "@/lib/current-user";
+import {getCurrentUser} from "@/lib/actions/user.action";
 import {db} from "@/lib/db";
 import {NextResponse} from "next/server";
 
@@ -10,8 +10,6 @@ export async function PATCH(
 		const profile = await getCurrentUser();
 
 		const {name, username} = await req.json();
-
-		const userId = params.userId;
 
 		if (!profile || profile.id !== params.userId) {
 			return new NextResponse("Unauthorized", {status: 401});

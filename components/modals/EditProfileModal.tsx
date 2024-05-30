@@ -1,5 +1,4 @@
 "use client";
-
 import {useModal} from "@/hooks/useModalStore";
 import {
 	Dialog,
@@ -9,7 +8,6 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import {zodResolver} from "@hookform/resolvers/zod";
-import qs from "query-string";
 import {useForm} from "react-hook-form";
 import {z} from "zod";
 import axios from "axios";
@@ -25,22 +23,14 @@ import {
 import {Input} from "@/components/ui/input";
 import {useEffect} from "react";
 import {useRouter} from "next/navigation";
-
-const formSchema = z.object({
-	name: z.string().min(2, {
-		message: "name must be at least 2 characters.",
-	}),
-	username: z.string().min(5, {
-		message: "name must be at least 5 characters.",
-	}),
-});
+import {editProfileSchema} from "@/lib/validation";
 
 const EditProfileModal = () => {
 	const {isOpen, onClose, type, data} = useModal();
+	const isModalOpen = isOpen && type === "editProfile";
 	const router = useRouter();
-
 	const form = useForm({
-		resolver: zodResolver(formSchema),
+		resolver: zodResolver(editProfileSchema),
 		defaultValues: {
 			name: data?.user?.name || "",
 			username: data?.user?.username || "",
@@ -54,9 +44,7 @@ const EditProfileModal = () => {
 		}
 	}, [form, data?.user]);
 
-	const isModalOpen = isOpen && type === "editProfile";
-
-	const onSubmit = async (values: z.infer<typeof formSchema>) => {
+	const onSubmit = async (values: z.infer<typeof editProfileSchema>) => {
 		try {
 			await axios.patch(`/api/user/${data?.user?.id}`, values);
 
