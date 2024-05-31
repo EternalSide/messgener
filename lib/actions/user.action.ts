@@ -31,6 +31,7 @@ export const createProfile = async () => {
 			imageUrl: user.imageUrl,
 			email: user.emailAddresses[0].emailAddress,
 			username: user.username as string,
+			chatBackground: "/bg.jpg",
 		},
 	});
 
@@ -82,4 +83,46 @@ export const getCurrentUserForPages = async (req: NextApiRequest) => {
 	});
 
 	return profile;
+};
+
+export const getOtherUser = async (userId: string) => {
+	try {
+		const otherUser = await db.user.findFirst({
+			where: {
+				OR: [{id: userId}, {username: userId}],
+			},
+		});
+		return otherUser;
+	} catch (e) {
+		console.log(e);
+	}
+};
+
+export const updateUser = async (props: any) => {
+	try {
+		const profile = await getCurrentUser();
+
+		const {name, username, userId} = props;
+
+		if (!profile || profile.id !== userId) {
+			throw new Error("Данные не совпадают");
+		}
+
+		const user = await db.user.update({
+			where: {
+				id: profile.id,
+			},
+			data: {
+				name,
+				username,
+			},
+		});
+
+		return user;
+	} catch (e: any) {
+		if (e.code === "P2002") {
+			return {message: "Имя пользователя занято."};
+		}
+		return {message: e};
+	}
 };

@@ -1,6 +1,6 @@
 import {create} from "zustand";
 
-export type ModalType = "editProfile";
+export type ModalType = "editProfile" | "userProfilePicture";
 
 interface ModalData {}
 

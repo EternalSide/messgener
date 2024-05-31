@@ -21,13 +21,15 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
 import {editProfileSchema} from "@/lib/validation";
+import {updateUser} from "@/lib/actions/user.action";
 
 const EditProfileModal = () => {
 	const {isOpen, onClose, type, data} = useModal();
 	const isModalOpen = isOpen && type === "editProfile";
+	const [error, setError] = useState("");
 	const router = useRouter();
 	const form = useForm({
 		resolver: zodResolver(editProfileSchema),
@@ -42,17 +44,24 @@ const EditProfileModal = () => {
 			form.setValue("name", data.user.name);
 			form.setValue("username", data.user.username);
 		}
-	}, [form, data?.user]);
+	}, [data?.user, isOpen]);
 
 	const onSubmit = async (values: z.infer<typeof editProfileSchema>) => {
+		setError("");
 		try {
-			await axios.patch(`/api/user/${data?.user?.id}`, values);
-
+			const res = await updateUser({
+				name: values.name,
+				username: values.username,
+				userId: data?.user?.id,
+			});
+			if (res?.message) {
+				setError(res.message);
+			}
 			form.reset();
 			router.refresh();
 			onClose();
-		} catch (error) {
-			console.log(error);
+		} catch (e: any) {
+			setError(e.response.data);
 		}
 	};
 
@@ -118,7 +127,11 @@ const EditProfileModal = () => {
 									</FormItem>
 								)}
 							/>
+							{error && (
+								<div className='bg-red-500 rounded-md px-3 py-2'>{error}</div>
+							)}
 						</div>
+
 						<DialogFooter className='px-6 py-4'>
 							<Button
 								variant='default'

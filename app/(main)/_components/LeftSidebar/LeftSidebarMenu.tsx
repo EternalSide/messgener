@@ -59,7 +59,7 @@ const LeftSidebarMenu = ({currentUser, setState, state}: Props) => {
 					className='flex items-center gap-4'
 				>
 					<MessageCircleIcon className='h-5 w-5 text-neutral-400' /> Чаты
-				</DropdownMenuItem>{" "}
+				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={() => setState("users")}
 					className='flex items-center gap-4'
@@ -102,7 +102,7 @@ const LeftSidebarMenu = ({currentUser, setState, state}: Props) => {
 				</DropdownMenuItem>
 				<DropdownMenuItem onClick={(e) => e.preventDefault()}>
 					<SignOutButton>
-						<div className='flex items-center gap-4'>
+						<div className='flex items-center gap-4 w-full'>
 							<LogOut className='h-5 w-5 text-neutral-400' /> Выйти
 						</div>
 					</SignOutButton>

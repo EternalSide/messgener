@@ -8,17 +8,12 @@ import {User} from "@prisma/client";
 import {getCurrentUser} from "@/lib/actions/user.action";
 import {getUserConversations} from "@/lib/actions/conversation.action";
 import {useQuery} from "@tanstack/react-query";
+import {Loader2} from "lucide-react";
+import useSidebarMessages from "@/hooks/sidebar/useSidebarMessages";
 
-// remake to async/await
 const LeftSidebar = () => {
 	const [state, setState] = useState<SideBarVariant>("chats");
 	const [currentUser, setCurrentUser] = useState<User | null>(null);
-
-	const {data, isLoading} = useQuery({
-		queryKey: ["chats"],
-		queryFn: async () => await getUserConversations(),
-	});
-
 	useEffect(() => {
 		const fetchUser = async () => {
 			const user = await getCurrentUser();
@@ -27,13 +22,21 @@ const LeftSidebar = () => {
 		fetchUser();
 	}, []);
 
-	const chats = data?.sort((a: any, b: any) => {
-		const lastMessagea = a.directMessages[a.directMessages.length - 1];
-		const lastMessageb = b.directMessages[b.directMessages.length - 1];
-		if (!lastMessagea || !lastMessageb) return [];
-		const at = lastMessagea.createdAt;
-		const bt = lastMessageb.createdAt;
-		return new Date(bt).getTime() - new Date(at).getTime();
+	const {data, isLoading} = useQuery({
+		queryKey: ["chats"],
+		queryFn: async () => {
+			const chats = await getUserConversations();
+			const c = chats?.sort((a: any, b: any) => {
+				if (!a?.directMessages || !b?.directMessages) return b - a;
+				const lastMessagea = a.directMessages[a.directMessages.length - 1];
+				const lastMessageb = b.directMessages[b.directMessages.length - 1];
+				if (!lastMessagea || !lastMessageb) return [];
+				const at = lastMessagea.createdAt;
+				const bt = lastMessageb.createdAt;
+				return new Date(bt).getTime() - new Date(at).getTime();
+			});
+			return c;
+		},
 	});
 
 	return (
@@ -47,12 +50,14 @@ const LeftSidebar = () => {
 				<LeftSidebarSearch />
 			</div>
 			{isLoading ? (
-				<p>Loading...</p>
+				<div className='flex flex-col flex-1 justify-center items-center'>
+					<Loader2 className='h-7 w-7 text-primary animate-spin my-4' />
+				</div>
 			) : (
 				<LeftSidebarContent
 					currentUser={currentUser as User}
 					state={state}
-					chats={chats}
+					chats={data}
 				/>
 			)}
 		</div>

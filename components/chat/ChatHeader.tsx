@@ -12,6 +12,7 @@ import {MobileSidebar} from "../MobileSidebar";
 import axios from "axios";
 import {useRouter} from "next/navigation";
 import {ConnectionStatus} from "../ConnectionStatus";
+import {useModal} from "@/hooks/useModalStore";
 
 interface Props {
 	authorName: string;
@@ -29,29 +30,36 @@ const ChatHeader = ({
 	isOwnChat,
 }: Props) => {
 	const router = useRouter();
-
+	const {onOpen} = useModal();
 	const deleteChat = async () => {
 		try {
-			await axios.delete(`/api/conversations/${conversationId}`);
-			router.push("/");
+			await axios.delete(`/api/socket/conversations/${conversationId}`);
+			router.refresh();
 		} catch (e) {
 			console.log(e);
 		}
 	};
+	const otherUserPic =
+		variant === "savedMessaged"
+			? SAVED_CHAT_PICTURE
+			: authorPic || NO_USER_IMAGE;
 	return (
-		<div className='w-full dark:bg-[#212121] bg-white min-h-16 py-1.5 px-5 flex items-center justify-between'>
+		<div className='w-full dark:bg-[#212121] bg-white min-h-16 py-1.5 px-5 flex items-center justify-between border-b border-black shadow-md'>
 			<div className='flex items-center gap-2.5 w-full'>
 				<MobileSidebar />
-				<div className='h-12 min-w-12 relative '>
+				<div
+					onClick={() =>
+						onOpen("userProfilePicture", {
+							imgSrc: otherUserPic,
+						})
+					}
+					className='h-12 min-w-12 relative cursor-pointer transition hover:opacity-90'
+				>
 					<Image
 						className='rounded-full object-top'
 						fill
 						alt={authorName}
-						src={
-							variant === "savedMessaged"
-								? SAVED_CHAT_PICTURE
-								: authorPic || NO_USER_IMAGE
-						}
+						src={otherUserPic}
 					/>
 				</div>
 				<div>

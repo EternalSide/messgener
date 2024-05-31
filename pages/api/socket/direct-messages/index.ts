@@ -47,7 +47,11 @@ export default async function handler(
 			},
 			include: {
 				userOne: true,
-				directMessages: true,
+				directMessages: {
+					orderBy: {
+						createdAt: "asc",
+					},
+				},
 				userTwo: true,
 			},
 		});
@@ -83,6 +87,6 @@ export default async function handler(
 		return res.status(200).json({conversation, message});
 	} catch (error) {
 		console.log("[DIRECT_MESSAGES_POST]", error);
-		return res.status(500).json({message: "Internal Error"});
+		return res.status(500).json({message: "Ошибка на стороне сервера"});
 	}
 }

@@ -7,3 +7,5 @@ export const sidebarAnimations = {
 };
 export const SAVED_CHAT_PICTURE =
 	"https://i.pinimg.com/736x/54/fc/3c/54fc3c4b95f17405a6b3cc42f75e4774.jpg";
+export const NO_CHAT_SELECTED_IMAGE = "/welcome.gif";
+export const MESSAGES_COUNT_FOR_LOAD = 15;

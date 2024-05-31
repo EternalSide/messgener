@@ -3,7 +3,7 @@ import {SideBarVariant} from "@/types";
 import {User} from "@prisma/client";
 import {useEffect, useState} from "react";
 
-const useSidebar = (state: SideBarVariant) => {
+const useSidebarUsers = (state: SideBarVariant) => {
 	const [users, setUsers] = useState<User[] | []>([]);
 
 	useEffect(() => {
@@ -19,4 +19,4 @@ const useSidebar = (state: SideBarVariant) => {
 
 	return users;
 };
-export default useSidebar;
+export default useSidebarUsers;

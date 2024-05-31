@@ -2,12 +2,10 @@ import {MotionDiv} from "@/components/MotionDiv";
 import ChatCard from "@/components/chat/ChatCard";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {SAVED_CHAT_PICTURE, sidebarAnimations} from "@/constants";
-import useSidebar from "@/hooks/useSidebar";
+import useSidebarUsers from "@/hooks/sidebar/useSidebarUsers";
 import {formatDate} from "@/lib/utils";
 import {SideBarVariant} from "@/types";
 import {User} from "@prisma/client";
-import {useQueryClient} from "@tanstack/react-query";
-import {useEffect} from "react";
 
 interface Props {
 	currentUser: User;
@@ -16,8 +14,7 @@ interface Props {
 }
 
 const LeftSidebarContent = ({currentUser, state, chats}: Props) => {
-	const users = useSidebar(state);
-	const queryClient = useQueryClient();
+	const users = useSidebarUsers(state);
 
 	return (
 		<MotionDiv
@@ -45,7 +42,7 @@ const LeftSidebarContent = ({currentUser, state, chats}: Props) => {
 					<ul>
 						{chats.map((chat: any) => {
 							const lastMessage =
-								chat.directMessages[chat.directMessages.length - 1];
+								chat?.directMessages[chat?.directMessages?.length - 1];
 							return (
 								<ChatCard
 									key={chat.userTwo.id}

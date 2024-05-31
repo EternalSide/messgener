@@ -20,7 +20,7 @@ model User {
   imageUrl String @db.Text
   email String @db.Text
 username String @unique
-
+chatBackground String 
 
 
   directMessages DirectMessage[]
