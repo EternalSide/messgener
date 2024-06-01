@@ -12,17 +12,14 @@ export default async function handler(
 		return res.status(405).json({error: "Method not allowed"});
 
 	try {
-		const profile = await getCurrentUserForPages(req);
+		const currentUser = await getCurrentUserForPages(req);
 
 		const {conversationId} = req.query;
 
-		if (!profile) {
-			return res.status(401).json({error: "Unauthorized"});
-		}
+		if (!currentUser) return res.status(401).json({error: "Unauthorized"});
 
-		if (!conversationId) {
+		if (!conversationId)
 			return res.status(400).json({error: "Conversation ID missing"});
-		}
 
 		const existingConversation = await db.conversation.findUnique({
 			where: {
@@ -36,6 +33,13 @@ export default async function handler(
 
 		if (!existingConversation)
 			return res.status(400).json({error: "Conversation ID missing"});
+
+		const isUserHasThisChat =
+			existingConversation.userOneId === currentUser.id ||
+			existingConversation.userTwoId === currentUser.id;
+
+		if (!isUserHasThisChat)
+			return res.status(401).json({error: "not ur chat))"});
 
 		const deletedConversation = await db.conversation.deleteMany({
 			where: {

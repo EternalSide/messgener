@@ -2,7 +2,7 @@ import {useEffect} from "react";
 import {useQueryClient} from "@tanstack/react-query";
 
 import {useSocket} from "@/providers/SocketProvider";
-import {DirectMessage} from "@prisma/client";
+import {Conversation, DirectMessage} from "@prisma/client";
 import {useRouter} from "next/navigation";
 
 type ChatSocketProps = {
@@ -25,34 +25,52 @@ export const useChatSocket = ({
 	useEffect(() => {
 		if (!socket) return;
 
-		socket.on(addKey, (message: DirectMessage) => {
-			// queryClient.setQueryData([queryKey], (oldData: any) => {
-			// 	if (!oldData || !oldData.pages || oldData.pages.length === 0) {
-			// 		return {
-			// 			pages: [
-			// 				{
-			// 					items: [message],
-			// 				},
-			// 			],
-			// 		};
-			// 	}
-			// 	const newData = [...oldData.pages];
-			// 	newData[0] = {
-			// 		...newData[0],
-			// 		items: [message, ...newData[0].items],
-			// 	};
-			// 	return {
-			// 		...oldData,
-			// 		pages: newData,
-			// 	};
-			// });
-			// revalidate chats
-			// queryClient.setQueryData(["chats"], (oldData: any) => []);
-		});
+		socket.on(addKey, ({conversation, message}: any) => {
+			queryClient.setQueryData([queryKey], (conversations: any) => {
+				const isFirst =
+					!conversations ||
+					!conversations.pages ||
+					conversations.pages.length === 0;
 
+				if (isFirst) {
+					return {
+						pages: [
+							{
+								items: [message],
+							},
+						],
+					};
+				}
+
+				const newData = [...conversations.pages];
+
+				newData[0] = {
+					...newData[0],
+					items: [message, ...newData[0].items],
+				};
+				return {
+					...conversations,
+					pages: newData,
+				};
+			});
+			queryClient.setQueryData([`chats`], (oldData: Conversation[]) => {
+				const chatsWihoutCurrent = oldData.filter(
+					(chat: Conversation) => chat.id !== conversation.id
+				);
+
+				const newConversation = {
+					...conversation,
+					directMessages: [...conversation?.directMessages, message],
+				};
+
+				const newData = [newConversation, ...chatsWihoutCurrent];
+				return newData;
+			});
+		});
+		// update sidebar
 		socket.on(deleteKey, () => {
-			router.refresh();
 			queryClient.removeQueries({queryKey: [queryKey]});
+			router.refresh();
 		});
 
 		// update message

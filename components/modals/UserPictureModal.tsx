@@ -7,6 +7,7 @@ const UserPictureModal = () => {
 	const {isOpen, onClose, type, data} = useModal();
 	const isModalOpen = isOpen && type === "userProfilePicture";
 	const {imgSrc} = data;
+
 	return (
 		<Dialog
 			open={isModalOpen}

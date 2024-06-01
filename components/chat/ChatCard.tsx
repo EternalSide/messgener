@@ -9,8 +9,8 @@ interface Props {
 	authorName: string;
 	authorPic: string | null;
 	authorUsername: string;
-	lastMessage: string;
-	lastMessageTime: string | null;
+	lastMessage?: string;
+	lastMessageTime?: string | null;
 	variant: "chat" | "user";
 }
 

@@ -19,18 +19,12 @@ model User {
   name String
   imageUrl String @db.Text
   email String @db.Text
-username String @unique
-chatBackground String 
-
-
+ username String @unique
+ chatBackground String? @db.Text
+ 
   directMessages DirectMessage[]
-
-
-
   conversationsInitiated Conversation[] @relation("UserOne")
   conversationsReceived Conversation[] @relation("UserTwo")
-
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

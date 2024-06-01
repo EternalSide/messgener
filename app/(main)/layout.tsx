@@ -1,8 +1,18 @@
 import {createProfile} from "@/lib/actions/user.action";
-import LeftSidebar from "./_components/LeftSidebar/LeftSidebar";
+import LeftSidebar from "../../components/shared/Sidebar/LeftSidebar";
+import {cn} from "@/lib/utils";
 
 const MainLayout = async ({children}: {children: React.ReactNode}) => {
-	const profile = await createProfile();
+	const currentUser = await createProfile();
+
+	let styles = {
+		backgroundImage: currentUser?.chatBackground
+			? `url("${currentUser.chatBackground}")`
+			: "",
+		backgroundRepeat: "no-repeat",
+		backgroundSize: "cover",
+		backgroundPosition: "center",
+	};
 
 	return (
 		<div className='h-full'>
@@ -10,15 +20,11 @@ const MainLayout = async ({children}: {children: React.ReactNode}) => {
 				<LeftSidebar />
 			</div>
 			<div
-				style={
-					{
-						// backgroundImage: `url("${profile.chatBackground}")`,
-						// backgroundRepeat: "no-repeat",
-						// backgroundSize: "cover",
-						// backgroundPosition: "center",
-					}
-				}
-				className='max-lg:pl-0 pl-[390px] w-full h-full bg-zinc-900'
+				style={styles}
+				className={cn(
+					"max-lg:pl-0 pl-[390px] w-full h-full",
+					!currentUser?.chatBackground && "bg-[#DCF8C6] dark:bg-zinc-900"
+				)}
 			>
 				{children}
 			</div>

@@ -1,28 +1,26 @@
 "use client";
 import {useChatQuery} from "@/hooks/chat/useChatQuery";
 import {useChatSocket} from "@/hooks/chat/useChatSocket";
-import {formatDate} from "@/lib/utils";
-import {DirectMessage} from "@prisma/client";
+import {formatDate, getSocketKeys} from "@/lib/utils";
+import {DirectMessage, User} from "@prisma/client";
 import {Loader2, ServerCrash} from "lucide-react";
 import {Fragment, useRef} from "react";
 import {ChatItem} from "./ChatItem";
-import ChatEmpty from "../chat-empty";
 import {NO_CHAT_SELECTED_IMAGE} from "@/constants";
 import {useChatScroll} from "@/hooks/chat/useChatScroll";
-import Loader from "../Loader";
+import Loader from "../shared/Loader";
+import ChatWelcome from "./ChatWelcome";
 
 interface Props {
 	chatId: string | null;
-	currentUser: any;
+	currentUser: User;
+	otherUserId: string;
 }
 
-const ChatMessages = ({chatId, currentUser}: Props) => {
+const ChatMessages = ({chatId, currentUser, otherUserId}: Props) => {
 	const chatRef = useRef<HTMLDivElement>(null);
 	const bottomRef = useRef<HTMLDivElement>(null);
-	const queryKey = `chat:${chatId}`;
-	const addKey = `chat:${chatId}:messages`;
-	const updateKey = `chat:${chatId}:messages:update`;
-	const deleteKey = `chat:${chatId}:messages:delete`;
+	const {queryKey, addKey, updateKey, deleteKey} = getSocketKeys(chatId);
 
 	const {
 		data,
@@ -43,6 +41,7 @@ const ChatMessages = ({chatId, currentUser}: Props) => {
 		bottomRef,
 		loadMore: fetchNextPage,
 		shouldLoadMore: !isFetchingNextPage && !!hasNextPage,
+		// @ts-ignore
 		count: data?.pages?.[0]?.items?.length ?? 0,
 	});
 
@@ -68,10 +67,14 @@ const ChatMessages = ({chatId, currentUser}: Props) => {
 		>
 			{!hasNextPage && <div className='flex-1' />}
 			{!chatId && (
-				<ChatEmpty
+				<ChatWelcome
 					src={NO_CHAT_SELECTED_IMAGE}
 					h1='Сообщения не найдены...'
-					h3=''
+					h3='Отправить привествие?'
+					variant='chat'
+					conversationId={chatId}
+					userOneId={currentUser.id}
+					userTwoId={otherUserId}
 				/>
 			)}
 			{hasNextPage && (
@@ -89,7 +92,7 @@ const ChatMessages = ({chatId, currentUser}: Props) => {
 				</div>
 			)}
 			<div className='flex flex-col-reverse mt-auto gap-1.5'>
-				{data?.pages?.map((messages, i) => (
+				{data?.pages?.map((messages: any, i) => (
 					<Fragment key={i}>
 						{messages.items.map(
 							(message: DirectMessage & {isOwnMessage?: boolean}) => {

@@ -29,10 +29,11 @@ const ChatWithUser = async ({params}: {params: {userId: string}}) => {
 				conversationId={conversation ? conversation.id : null}
 				isOwnChat={isOwnChat}
 			/>
-			<div className='max-w-[700px] w-full mx-auto flex-1 flex flex-col overflow-y-auto '>
+			<div className='max-w-[700px] w-full mx-auto max-[1200px]:px-4 flex-1 flex flex-col overflow-y-auto '>
 				<ChatMessages
 					chatId={conversation ? conversation.id : null}
 					currentUser={currentUser}
+					otherUserId={user.id}
 				/>
 
 				<ChatInput

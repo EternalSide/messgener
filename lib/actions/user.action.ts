@@ -1,5 +1,4 @@
 "use server";
-
 import {auth, currentUser, getAuth} from "@clerk/nextjs/server";
 import {db} from "../db";
 import {redirect} from "next/navigation";
@@ -21,7 +20,8 @@ export const createProfile = async () => {
 			userId: user?.id,
 		},
 	});
-
+	// * upload fake data
+	// createFakeUsers(profile.id);
 	if (profile) return profile;
 
 	const newProfile = await db.user.create({
@@ -31,7 +31,6 @@ export const createProfile = async () => {
 			imageUrl: user.imageUrl,
 			email: user.emailAddresses[0].emailAddress,
 			username: user.username as string,
-			chatBackground: "/bg.jpg",
 		},
 	});
 
@@ -54,6 +53,7 @@ export const createProfile = async () => {
 			userId: newProfile.id,
 		},
 	});
+
 	return newProfile;
 };
 
@@ -98,31 +98,60 @@ export const getOtherUser = async (userId: string) => {
 	}
 };
 
-export const updateUser = async (props: any) => {
+export const updateUser = async (props: {
+	name: string;
+	username: string;
+	userId: string;
+	imageUrl: string;
+	chatBackground: string;
+}) => {
 	try {
-		const profile = await getCurrentUser();
+		const currentUser = await getCurrentUser();
 
-		const {name, username, userId} = props;
+		const {name, username, userId, imageUrl, chatBackground} = props;
 
-		if (!profile || profile.id !== userId) {
+		if (!currentUser || currentUser.id !== userId) {
 			throw new Error("Данные не совпадают");
 		}
 
 		const user = await db.user.update({
 			where: {
-				id: profile.id,
+				id: currentUser.id,
 			},
 			data: {
 				name,
 				username,
+				imageUrl,
+				chatBackground,
 			},
 		});
-
 		return user;
 	} catch (e: any) {
 		if (e.code === "P2002") {
 			return {message: "Имя пользователя занято."};
 		}
-		return {message: e};
+		throw new Error(e);
+	}
+};
+
+export const findUsers = async (params: {searchQuery: string}) => {
+	try {
+		const {searchQuery} = params;
+
+		const users = await db.user.findMany({
+			where: {
+				OR: [
+					{username: {contains: searchQuery, mode: "insensitive"}},
+					{name: {contains: searchQuery, mode: "insensitive"}},
+				],
+			},
+		});
+
+		if (!users) return [];
+
+		return users;
+	} catch (e) {
+		console.log(e);
+		throw e;
 	}
 };

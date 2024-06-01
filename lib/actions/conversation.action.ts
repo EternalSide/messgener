@@ -16,6 +16,7 @@ export const getUserConversations = async () => {
 			include: {
 				conversationsInitiated: {
 					include: {
+						userOne: true,
 						userTwo: true,
 						directMessages: {
 							select: {
@@ -27,6 +28,7 @@ export const getUserConversations = async () => {
 				},
 				conversationsReceived: {
 					include: {
+						userOne: true,
 						userTwo: true,
 						directMessages: {
 							select: {
@@ -39,31 +41,26 @@ export const getUserConversations = async () => {
 			},
 		});
 
-		let allChats: any;
+		let uniqueChats = [];
 
-		if (
+		const isUserHasChats =
 			chats?.conversationsInitiated.length ||
-			chats?.conversationsReceived.length
-		) {
-			const c = [
+			chats?.conversationsReceived.length;
+
+		if (isUserHasChats) {
+			const seenIds = new Set();
+			for (const chat of [
 				...chats?.conversationsInitiated,
 				...chats?.conversationsReceived,
-			];
-			const uniqueChats = [];
-			const seenIds = new Set();
-
-			for (const chat of c) {
+			]) {
 				if (!seenIds.has(chat.id)) {
 					seenIds.add(chat.id);
 					uniqueChats.push(chat);
 				}
 			}
-			allChats = uniqueChats;
-		} else {
-			allChats = [];
 		}
 
-		return allChats;
+		return uniqueChats;
 	} catch (e) {
 		throw e;
 	}
@@ -89,6 +86,7 @@ export const createNewConversation = async (
 		return null;
 	}
 };
+
 export const getConversation = async (
 	memberOneId: string,
 	memberTwoId: string
@@ -102,22 +100,6 @@ export const getConversation = async (
 	}
 
 	return conversation;
-};
-
-const _findConversation = async (memberOneId: string, memberTwoId: string) => {
-	try {
-		return await db.conversation.findFirst({
-			where: {
-				AND: [{userOneId: memberOneId}, {userTwoId: memberTwoId}],
-			},
-			include: {
-				userOne: true,
-				userTwo: true,
-			},
-		});
-	} catch {
-		return null;
-	}
 };
 
 export const getMessages = async (props: any) => {
@@ -176,5 +158,21 @@ export const getMessages = async (props: any) => {
 	} catch (e) {
 		console.log(e);
 		throw e;
+	}
+};
+
+const _findConversation = async (memberOneId: string, memberTwoId: string) => {
+	try {
+		return await db.conversation.findFirst({
+			where: {
+				AND: [{userOneId: memberOneId}, {userTwoId: memberTwoId}],
+			},
+			include: {
+				userOne: true,
+				userTwo: true,
+			},
+		});
+	} catch {
+		return null;
 	}
 };

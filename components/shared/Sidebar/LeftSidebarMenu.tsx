@@ -26,22 +26,25 @@ import {SetStateAction} from "react";
 
 interface Props {
 	currentUser: User;
-	setState: React.Dispatch<SetStateAction<SideBarVariant>>;
-	state: SideBarVariant;
+	setSidebarVariant: React.Dispatch<SetStateAction<SideBarVariant>>;
+	sidebarVariant: SideBarVariant;
 }
 
-const LeftSidebarMenu = ({currentUser, setState, state}: Props) => {
+const LeftSidebarMenu = ({
+	currentUser,
+	setSidebarVariant,
+	sidebarVariant,
+}: Props) => {
 	const {theme, setTheme} = useTheme();
 	const isDarkTheme = theme === "dark";
 	const router = useRouter();
 	const {onOpen} = useModal();
 
-	// Стрелка назад
-	if (state !== "chats") {
+	if (sidebarVariant !== "chats") {
 		return (
 			<button
 				className='dark:hover:bg-neutral-700/50 hover:bg-neutral-200/50 transition p-2 rounded-full flex items-center justify-center'
-				onClick={() => setState("chats")}
+				onClick={() => setSidebarVariant("chats")}
 			>
 				<ArrowLeft className='h-6 w-6 text-neutral-400' />
 			</button>
@@ -49,7 +52,7 @@ const LeftSidebarMenu = ({currentUser, setState, state}: Props) => {
 	}
 
 	return (
-		<DropdownMenu>
+		<DropdownMenu >
 			<DropdownMenuTrigger className='dark:hover:bg-neutral-700/50 hover:bg-neutral-200/50 transition p-2 rounded-full flex items-center justify-center'>
 				<Menu className='h-6 w-6 text-neutral-400' />
 			</DropdownMenuTrigger>
@@ -61,7 +64,7 @@ const LeftSidebarMenu = ({currentUser, setState, state}: Props) => {
 					<MessageCircleIcon className='h-5 w-5 text-neutral-400' /> Чаты
 				</DropdownMenuItem>
 				<DropdownMenuItem
-					onClick={() => setState("users")}
+					onClick={() => setSidebarVariant("users")}
 					className='flex items-center gap-4'
 				>
 					<Users className='h-5 w-5 text-neutral-400' /> Пользователи

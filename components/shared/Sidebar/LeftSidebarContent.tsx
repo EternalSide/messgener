@@ -1,62 +1,68 @@
-import {MotionDiv} from "@/components/MotionDiv";
+import {MotionDiv} from "@/components/shared/MotionDiv";
 import ChatCard from "@/components/chat/ChatCard";
 import {ScrollArea} from "@/components/ui/scroll-area";
-import {SAVED_CHAT_PICTURE, sidebarAnimations} from "@/constants";
-import useSidebarUsers from "@/hooks/sidebar/useSidebarUsers";
+import {sidebarAnimations} from "@/constants";
 import {formatDate} from "@/lib/utils";
-import {SideBarVariant} from "@/types";
+import {ConversationWithUsersAndMessages, SideBarVariant} from "@/types";
 import {User} from "@prisma/client";
 
 interface Props {
 	currentUser: User;
-	state: SideBarVariant;
-	chats: any;
+	sidebarVariant: SideBarVariant;
+	chats: ConversationWithUsersAndMessages[];
+	users: User[];
 }
 
-const LeftSidebarContent = ({currentUser, state, chats}: Props) => {
-	const users = useSidebarUsers(state);
-
+const LeftSidebarContent = ({
+	currentUser,
+	sidebarVariant,
+	chats,
+	users,
+}: Props) => {
 	return (
 		<MotionDiv
-			key={state}
+			key={sidebarVariant}
 			variants={sidebarAnimations}
 			initial='hidden'
 			animate='visible'
 			exit='exit'
 			transition={{duration: 0.3}}
+			className='h-full'
 		>
-			<ScrollArea className='mt-2 px-2.5 flex flex-col h-full border-none'>
-				{state === "users" &&
+			<ScrollArea className='mt-2 px-2.5 flex flex-col flex-1 h-full'>
+				{sidebarVariant === "users" &&
 					users.map((user: User) => (
 						<ChatCard
 							key={user.id}
 							authorName={user.name}
 							authorPic={user.imageUrl}
 							authorUsername={user?.username ? user.username : user.id}
-							lastMessage='privet'
-							lastMessageTime='20:32'
 							variant='user'
 						/>
 					))}
-				{state === "chats" && (
+				{sidebarVariant === "chats" && (
 					<ul>
-						{chats.map((chat: any) => {
+						{chats.map((chat: ConversationWithUsersAndMessages) => {
 							const lastMessage =
 								chat?.directMessages[chat?.directMessages?.length - 1];
+							const otherUser =
+								chat.userOne.id === currentUser.id
+									? chat.userTwo
+									: chat.userOne;
 							return (
 								<ChatCard
-									key={chat.userTwo.id}
+									key={otherUser.id}
 									authorName={
-										chat.userTwo.name === currentUser?.name
+										otherUser.name === currentUser?.name
 											? "Избранное"
-											: chat.userTwo.name
+											: otherUser.name
 									}
 									authorPic={
-										chat.userTwo.name === currentUser?.name
-											? SAVED_CHAT_PICTURE
-											: chat.userTwo.imageUrl
+										otherUser.name === currentUser?.name
+											? currentUser?.imageUrl
+											: otherUser.imageUrl
 									}
-									authorUsername={chat.userTwo.username}
+									authorUsername={otherUser.username}
 									lastMessage={lastMessage?.content}
 									lastMessageTime={
 										lastMessage?.createdAt
