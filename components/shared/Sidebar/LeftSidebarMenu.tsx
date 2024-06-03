@@ -52,7 +52,7 @@ const LeftSidebarMenu = ({
 	}
 
 	return (
-		<DropdownMenu >
+		<DropdownMenu>
 			<DropdownMenuTrigger className='dark:hover:bg-neutral-700/50 hover:bg-neutral-200/50 transition p-2 rounded-full flex items-center justify-center'>
 				<Menu className='h-6 w-6 text-neutral-400' />
 			</DropdownMenuTrigger>

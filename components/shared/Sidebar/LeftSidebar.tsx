@@ -3,22 +3,22 @@ import LeftSidebarSearch from "./LeftSidebarSearch";
 import LeftSidebarMenu from "./LeftSidebarMenu";
 import LeftSidebarContent from "./LeftSidebarContent";
 import {useState} from "react";
-import {ConversationWithUsersAndMessages, SideBarVariant} from "@/types";
+import {ChatWithUsersAndMessages, SideBarVariant} from "@/types";
 import {User} from "@prisma/client";
 import {getAllUsers, getCurrentUser} from "@/lib/actions/user.action";
-import {getUserConversations} from "@/lib/actions/conversation.action";
+import {getUserChats} from "@/lib/actions/chat.action";
 import {useQueries} from "@tanstack/react-query";
 import {cn, sortChats} from "@/lib/utils";
 import Loader from "@/components/shared/Loader";
 
 interface Props {
-	mainPage?: boolean;
+	isHomePage?: boolean;
 }
 
-const LeftSidebar = ({mainPage}: Props) => {
+const LeftSidebar = ({isHomePage}: Props) => {
 	const [sidebarVariant, setSidebarVariant] = useState<SideBarVariant>("chats");
 
-	const res: any = useQueries({
+	const res = useQueries({
 		queries: [
 			{
 				queryKey: ["currentUser"],
@@ -27,7 +27,7 @@ const LeftSidebar = ({mainPage}: Props) => {
 			{
 				queryKey: ["chats"],
 				queryFn: async () => {
-					const chats = await getUserConversations();
+					const chats = await getUserChats();
 					const sortedChatsByLastMessage = sortChats(chats);
 					return sortedChatsByLastMessage;
 				},
@@ -40,8 +40,12 @@ const LeftSidebar = ({mainPage}: Props) => {
 	});
 
 	const currentUser = res[0].data as User;
-	const chats = res[1].data as ConversationWithUsersAndMessages[];
-	const users = res[2].data;
+
+	const chats = res[1].data as ChatWithUsersAndMessages[];
+	const isChatsLoading = res[1].isLoading;
+
+	const users = res[2].data as User[];
+	const isUsersLoading = res[2].isLoading;
 
 	const isLoading = () => {
 		if (sidebarVariant === "chats") {
@@ -56,7 +60,7 @@ const LeftSidebar = ({mainPage}: Props) => {
 		<div
 			className={cn(
 				" bg-light dark:bg-dark h-full fixed left-0 top-0 border-r shadow-md border-neutral-300 dark:border-neutral-700 px-0 py-1.5",
-				mainPage ? "w-full" : "w-[390px]"
+				isHomePage ? "w-full" : "w-[390px]"
 			)}
 		>
 			<div className='flex items-center gap-2.5 pr-4 pl-2.5'>
@@ -66,8 +70,10 @@ const LeftSidebar = ({mainPage}: Props) => {
 					setSidebarVariant={setSidebarVariant}
 				/>
 				<LeftSidebarSearch
-					sidebarVariant={sidebarVariant}
 					currentUserId={currentUser?.id}
+					sidebarVariant={sidebarVariant}
+					isUsersLoading={isUsersLoading}
+					isChatsLoading={isChatsLoading}
 				/>
 			</div>
 			{isLoading() ? (

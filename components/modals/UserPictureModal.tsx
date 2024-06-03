@@ -1,12 +1,12 @@
 "use client";
 import {useModal} from "@/hooks/useModalStore";
 import {Dialog, DialogContent} from "@/components/ui/dialog";
-
 import Image from "next/image";
+import {NO_USER_IMAGE} from "@/constants";
+
 const UserPictureModal = () => {
 	const {isOpen, onClose, type, data} = useModal();
 	const isModalOpen = isOpen && type === "userProfilePicture";
-	const {imgSrc} = data;
 
 	return (
 		<Dialog
@@ -17,8 +17,8 @@ const UserPictureModal = () => {
 				<div className='h-[55vh] w-full relative '>
 					<Image
 						fill
-						alt={""}
-						src={imgSrc}
+						alt={data?.name || ""}
+						src={data?.imgSrc || NO_USER_IMAGE}
 					/>
 				</div>
 			</DialogContent>

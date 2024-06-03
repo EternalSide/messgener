@@ -1,5 +1,5 @@
 import {findUsers} from "@/lib/actions/user.action";
-import {ConversationWithUsersAndMessages, SideBarVariant} from "@/types";
+import {ChatWithUsersAndMessages, SideBarVariant} from "@/types";
 import {User} from "@prisma/client";
 import {useQueryClient} from "@tanstack/react-query";
 import {Search} from "lucide-react";
@@ -8,30 +8,48 @@ import {useEffect, useState} from "react";
 interface Props {
 	sidebarVariant: SideBarVariant;
 	currentUserId: string;
+	isUsersLoading: boolean;
+	isChatsLoading: boolean;
 }
 
-const LeftSidebarSearch = ({sidebarVariant, currentUserId}: Props) => {
+const LeftSidebarSearch = ({
+	sidebarVariant,
+	currentUserId,
+	isUsersLoading,
+	isChatsLoading,
+}: Props) => {
 	const queryClient = useQueryClient();
 	const [searchValue, setSearchValue] = useState("");
-	const [initialData, setInitialData] = useState({
-		users: queryClient.getQueryData(["users"]) as User[],
-		chats: queryClient.getQueryData([
-			"chats",
-		]) as ConversationWithUsersAndMessages[],
+	const [initialData, setInitialData] = useState<{chats: any; users: any}>({
+		chats: null,
+		users: null,
 	});
+
+	useEffect(() => {
+		if (!isUsersLoading && !isChatsLoading) {
+			setInitialData({
+				users: queryClient.getQueryData(["users"]),
+				chats: queryClient.getQueryData(["chats"]),
+			});
+			console.log("true");
+		}
+	}, [isUsersLoading, isChatsLoading]);
 
 	useEffect(() => {
 		const fetchSearchResults = async () => {
 			if (sidebarVariant === "users") {
 				const users: User[] = await findUsers({
-					searchQuery: searchValue.trim(),
+					searchQuery:
+						searchValue[0] === "@"
+							? searchValue.slice(1).trim()
+							: searchValue.trim(),
 				});
 				queryClient.setQueryData(["users"], () => users);
 			}
 
 			if (sidebarVariant === "chats") {
 				const filteredChats = initialData.chats.filter(
-					(chat: ConversationWithUsersAndMessages) => {
+					(chat: ChatWithUsersAndMessages) => {
 						const otherUser =
 							currentUserId === chat.userOneId ? chat.userTwo : chat.userOne;
 						const value = searchValue.trim().toLowerCase();
@@ -58,9 +76,8 @@ const LeftSidebarSearch = ({sidebarVariant, currentUserId}: Props) => {
 	const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = e.target.value;
 		setSearchValue(value);
-		const isEmpty = value === "" || value.length === 0;
 
-		if (isEmpty) {
+		if (value === "" || value.length === 0) {
 			if (sidebarVariant === "users") {
 				queryClient.setQueryData(["users"], () => initialData.users);
 			}

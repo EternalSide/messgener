@@ -1,5 +1,5 @@
 "use client";
-import {useModal} from "@/hooks/useModalStore";
+import {ModalStore, useModal} from "@/hooks/useModalStore";
 import {
 	Dialog,
 	DialogContent,
@@ -29,15 +29,17 @@ import {MotionDiv} from "../shared/MotionDiv";
 import {sidebarAnimations} from "@/constants";
 import {FileText, Image} from "lucide-react";
 import {cn} from "@/lib/utils";
+import {useRouter} from "next/navigation";
 
 const EditProfileModal = () => {
 	const [variant, setVariant] = useState<"general" | "images">("general");
-	const {isOpen, onClose, type, data} = useModal();
+	const {isOpen, onClose, type, data}: ModalStore = useModal();
 	const isModalOpen = isOpen && type === "editProfile";
 	const [error, setError] = useState("");
 	const [profilePicture, setProfilePicture] = useState<File | string>();
 	const [backgroundPicture, setBackgroundPicture] = useState<File | string>();
 	const {edgestore} = useEdgeStore();
+	const router = useRouter();
 
 	const form = useForm({
 		resolver: zodResolver(editProfileSchema),
@@ -51,8 +53,8 @@ const EditProfileModal = () => {
 		if (data?.user) {
 			form.setValue("name", data.user.name);
 			form.setValue("username", data.user.username);
-			setProfilePicture(data.user?.imageUrl);
-			setBackgroundPicture(data.user?.chatBackground);
+			setProfilePicture(data.user?.profilePic || "");
+			setBackgroundPicture(data.user?.backgroundPic || "");
 		}
 	}, [data?.user, isModalOpen]);
 
@@ -62,43 +64,43 @@ const EditProfileModal = () => {
 	};
 	const onSubmit = async (values: z.infer<typeof editProfileSchema>) => {
 		setError("");
-		let imageUrl = profilePicture ? profilePicture : "";
-		let chatBackground = backgroundPicture ? backgroundPicture : "";
+		let profilePic = profilePicture ? profilePicture : "";
+		let backgroundPic = backgroundPicture ? backgroundPicture : "";
 
 		try {
 			// Если обновили изображение
-			if (typeof imageUrl !== "string") {
+			if (typeof profilePic !== "string") {
 				const res = await edgestore.userProfilePic.upload({
-					file: imageUrl,
+					file: profilePic,
 					options: {
-						replaceTargetUrl: data?.user?.imageUrl,
+						replaceTargetUrl: data?.user?.profilePic,
 					},
 				});
-				imageUrl = res.url;
+				profilePic = res.url;
 			}
 			// Если обновили фон
-			if (typeof chatBackground !== "string") {
+			if (typeof backgroundPic !== "string") {
 				const res = await edgestore.userChatBackground.upload({
-					file: chatBackground,
+					file: backgroundPic,
 					options: {
-						replaceTargetUrl: data?.user?.chatBackground,
+						replaceTargetUrl: data?.user?.backgroundPic as string,
 					},
 				});
-				chatBackground = res.url;
+				backgroundPic = res.url;
 			}
 
 			const res = await updateUser({
 				name: values.name,
 				username: values.username,
-				userId: data?.user?.id,
-				imageUrl,
-				chatBackground,
+				userId: data?.user?.id as string,
+				profilePic,
+				backgroundPic,
 			});
 
 			if ("message" in res) return setError((res as Error).message);
 
 			handleClose();
-			window.location.reload();
+			router.refresh();
 		} catch (e) {
 			console.log(e);
 		}
@@ -124,6 +126,12 @@ const EditProfileModal = () => {
 					<DialogTitle className='text-2xl text-center font-normal'>
 						Редактировать профиль
 					</DialogTitle>
+					<div className='flex justify-center items-center'>
+						<Button>Основное</Button>{" "}
+						<Button className={variant === "images" ? "" : "!rounded-none"}>
+							Оформление
+						</Button>
+					</div>
 				</DialogHeader>
 				<Form {...form}>
 					<form

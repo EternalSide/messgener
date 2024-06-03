@@ -1,7 +1,7 @@
 import {Server as NetServer, Socket} from "net";
 import {Server as SocketIOServer} from "socket.io";
 import {NextApiResponse} from "next";
-import {Prisma} from "@prisma/client";
+import {Chat, DirectMessage, Prisma} from "@prisma/client";
 
 export type NextApiResponseServerIo = NextApiResponse & {
 	socket: Socket & {
@@ -12,7 +12,7 @@ export type NextApiResponseServerIo = NextApiResponse & {
 };
 export type SideBarVariant = "chats" | "users";
 
-export type ConversationWithUsersAndMessages = Prisma.ConversationGetPayload<{
+export type ChatWithUsersAndMessages = Prisma.ChatGetPayload<{
 	include: {
 		userOne: true;
 		userTwo: true;
@@ -24,3 +24,19 @@ export type ConversationWithUsersAndMessages = Prisma.ConversationGetPayload<{
 		};
 	};
 }>;
+
+export type SendMessageDataType = {
+	isFirstMessage: boolean;
+	conversation: null | Chat;
+};
+
+export interface SendMessageToTheUser {
+	chatId: string | null | undefined;
+	content: string;
+	userOneId: string;
+	userTwoId: string;
+}
+export interface SocketRes {
+	chat: ChatWithUsersAndMessages;
+	message: DirectMessage;
+}

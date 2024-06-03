@@ -1,21 +1,22 @@
 import {useInfiniteQuery} from "@tanstack/react-query";
 import {useSocket} from "@/providers/SocketProvider";
 import {usePathname} from "next/navigation";
-import {getMessages} from "@/lib/actions/conversation.action";
+import {getMessages} from "@/lib/actions/chat.action";
+import {getSocketKeys} from "@/lib/utils";
 
-interface ChatQueryProps {
-	queryKey: string;
-	conversationId: string | null;
+interface Props {
+	chatId: string | null;
 }
 
-export const useChatQuery = ({queryKey, conversationId}: ChatQueryProps) => {
+export const useChatQuery = ({chatId}: Props) => {
 	const {isConnected} = useSocket();
 	const path = usePathname();
+	const {queryKey} = getSocketKeys(chatId);
 
 	const fetchMessages = async ({pageParam = undefined}) => {
 		const data = await getMessages({
 			cursor: pageParam,
-			conversationId: conversationId ? conversationId : path?.slice(1),
+			chatId: chatId ? chatId : path?.slice(1),
 		});
 		return data;
 	};

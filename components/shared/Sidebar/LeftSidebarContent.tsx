@@ -3,13 +3,13 @@ import ChatCard from "@/components/chat/ChatCard";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {sidebarAnimations} from "@/constants";
 import {formatDate} from "@/lib/utils";
-import {ConversationWithUsersAndMessages, SideBarVariant} from "@/types";
+import {ChatWithUsersAndMessages, SideBarVariant} from "@/types";
 import {User} from "@prisma/client";
 
 interface Props {
 	currentUser: User;
 	sidebarVariant: SideBarVariant;
-	chats: ConversationWithUsersAndMessages[];
+	chats: ChatWithUsersAndMessages[];
 	users: User[];
 }
 
@@ -34,15 +34,15 @@ const LeftSidebarContent = ({
 					users.map((user: User) => (
 						<ChatCard
 							key={user.id}
-							authorName={user.name}
-							authorPic={user.imageUrl}
-							authorUsername={user?.username ? user.username : user.id}
+							otherUserName={user.name}
+							otherUserPic={user?.profilePic}
+							otherUserUsername={user.username}
 							variant='user'
 						/>
 					))}
 				{sidebarVariant === "chats" && (
 					<ul>
-						{chats.map((chat: ConversationWithUsersAndMessages) => {
+						{chats.map((chat: ChatWithUsersAndMessages) => {
 							const lastMessage =
 								chat?.directMessages[chat?.directMessages?.length - 1];
 							const otherUser =
@@ -52,17 +52,17 @@ const LeftSidebarContent = ({
 							return (
 								<ChatCard
 									key={otherUser.id}
-									authorName={
+									otherUserName={
 										otherUser.name === currentUser?.name
 											? "Избранное"
 											: otherUser.name
 									}
-									authorPic={
+									otherUserPic={
 										otherUser.name === currentUser?.name
-											? currentUser?.imageUrl
-											: otherUser.imageUrl
+											? currentUser?.profilePic
+											: otherUser.profilePic
 									}
-									authorUsername={otherUser.username}
+									otherUserUsername={otherUser.username}
 									lastMessage={lastMessage?.content}
 									lastMessageTime={
 										lastMessage?.createdAt

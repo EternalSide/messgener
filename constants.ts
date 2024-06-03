@@ -1,7 +1,7 @@
 export const NO_USER_IMAGE =
 	"https://i.pinimg.com/564x/65/1c/6d/651c6da502353948bdc929f02da2b8e0.jpg";
 export const sidebarAnimations = {
-	hidden: {opacity: 0, x: -100},
+	hidden: {opacity: 0, x: -200},
 	visible: {opacity: 1, x: 0},
 	exit: {opacity: 0, x: -100},
 };

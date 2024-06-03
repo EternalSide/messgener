@@ -3,88 +3,82 @@ import {NextApiResponseServerIo} from "@/types";
 
 import {db} from "@/lib/db";
 import {getCurrentUserForPages} from "@/lib/actions/user.action";
+import {getSocketKeys} from "@/lib/utils";
 
 export default async function handler(
 	req: NextApiRequest,
 	res: NextApiResponseServerIo
 ) {
 	if (req.method !== "POST")
-		return res.status(405).json({error: "Method not allowed"});
+		return res.status(405).json({error: "Метод не разрешен"});
 
 	try {
-		const profile = await getCurrentUserForPages(req);
-
+		const currentUser = await getCurrentUserForPages(req);
 		const {content} = req.body;
-		const {conversationId} = req.query;
+		const {chatId} = req.query;
 
-		if (!profile) {
-			return res.status(401).json({error: "Unauthorized"});
+		if (!currentUser) {
+			return res.status(401).json({error: "Вы не авторизованы."});
 		}
 
-		if (!conversationId) {
-			return res.status(400).json({error: "Conversation ID missing"});
+		if (!chatId) {
+			return res.status(400).json({error: "Не указан Chat Id"});
 		}
 
 		if (!content) {
-			return res.status(400).json({error: "Content missing"});
+			return res.status(400).json({error: "Пустое сообщение."});
 		}
 
-		const conversation = await db.conversation.findFirst({
+		const chat = await db.chat.findFirst({
 			where: {
-				id: conversationId as string,
+				id: chatId as string,
 				OR: [
 					{
 						userOne: {
-							id: profile.id as string,
+							id: currentUser.id,
 						},
 					},
 					{
 						userTwo: {
-							id: profile.id as string,
+							id: currentUser.id,
 						},
 					},
 				],
 			},
 			include: {
 				userOne: true,
+				userTwo: true,
 				directMessages: {
 					orderBy: {
 						createdAt: "asc",
 					},
 				},
-				userTwo: true,
 			},
 		});
 
-		if (!conversation) {
-			return res.status(404).json({message: "Conversation not found"});
+		if (!chat) {
+			return res.status(404).json({message: "Чат не найден."});
 		}
 
-		const member =
-			conversation.userOne.id === profile.id
-				? conversation.userOne
-				: conversation.userTwo;
+		const isUserHasThisConversation =
+			chat.userOne.id === currentUser.id ? chat.userOne : chat.userTwo;
 
-		if (!member) {
-			return res.status(404).json({message: "Member not found"});
-		}
+		if (!isUserHasThisConversation)
+			return res.status(404).json({message: "Чат не найден."});
 
 		const message = await db.directMessage.create({
 			data: {
 				content,
-				conversationId: conversationId as string,
-				userId: member.id,
-			},
-			include: {
-				user: true,
+				chatId: chatId as string,
+				userId: isUserHasThisConversation.id,
 			},
 		});
-		console.log(message);
-		const channelKey = `chat:${conversationId}:messages`;
 
-		res?.socket?.server?.io?.emit(channelKey, {conversation, message});
+		const {sendMessageKey} = getSocketKeys(chatId as string);
 
-		return res.status(200).json({conversation, message});
+		res?.socket?.server?.io?.emit(sendMessageKey, {chat, message});
+
+		return res.status(200).json({chat, message});
 	} catch (error) {
 		console.log("[DIRECT_MESSAGES_POST]", error);
 		return res.status(500).json({message: "Ошибка на стороне сервера"});

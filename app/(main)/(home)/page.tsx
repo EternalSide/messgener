@@ -13,7 +13,7 @@ export default function Home() {
 				/>
 			</div>
 			<div className='lg:hidden'>
-				<LeftSidebar mainPage={true} />
+				<LeftSidebar isHomePage={true} />
 			</div>
 		</main>
 	);

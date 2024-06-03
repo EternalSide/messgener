@@ -1,15 +1,16 @@
 "use client";
 import {useChatQuery} from "@/hooks/chat/useChatQuery";
 import {useChatSocket} from "@/hooks/chat/useChatSocket";
-import {formatDate, getSocketKeys} from "@/lib/utils";
+import {formatDate} from "@/lib/utils";
 import {DirectMessage, User} from "@prisma/client";
-import {Loader2, ServerCrash} from "lucide-react";
+import {ServerCrash} from "lucide-react";
 import {Fragment, useRef} from "react";
 import {ChatItem} from "./ChatItem";
 import {NO_CHAT_SELECTED_IMAGE} from "@/constants";
 import {useChatScroll} from "@/hooks/chat/useChatScroll";
 import Loader from "../shared/Loader";
 import ChatWelcome from "./ChatWelcome";
+import {Button} from "../ui/button";
 
 interface Props {
 	chatId: string | null;
@@ -20,8 +21,6 @@ interface Props {
 const ChatMessages = ({chatId, currentUser, otherUserId}: Props) => {
 	const chatRef = useRef<HTMLDivElement>(null);
 	const bottomRef = useRef<HTMLDivElement>(null);
-	const {queryKey, addKey, updateKey, deleteKey} = getSocketKeys(chatId);
-
 	const {
 		data,
 		fetchNextPage,
@@ -30,11 +29,9 @@ const ChatMessages = ({chatId, currentUser, otherUserId}: Props) => {
 		status,
 		isLoading,
 	} = useChatQuery({
-		queryKey,
-		conversationId: chatId ? chatId : null,
+		chatId: chatId ? chatId : null,
 	});
-
-	useChatSocket({queryKey, addKey, updateKey, deleteKey});
+	useChatSocket({chatId: chatId as string});
 
 	useChatScroll({
 		chatRef,
@@ -45,15 +42,13 @@ const ChatMessages = ({chatId, currentUser, otherUserId}: Props) => {
 		count: data?.pages?.[0]?.items?.length ?? 0,
 	});
 
-	if (isLoading) {
-		return <Loader />;
-	}
+	if (isLoading) return <Loader />;
 
 	if (status === "error") {
 		return (
 			<div className='flex flex-col flex-1 justify-center items-center'>
-				<ServerCrash className='h-7 w-7 text-zinc-500 my-4' />
-				<p className='text-xs text-zinc-500 dark:text-zinc-400'>
+				<ServerCrash className='h-7 w-7 text-neutral-500 my-4' />
+				<p className='text-sm text-neutral-500 dark:text-neutral-400'>
 					Что-то пошло не так...
 				</p>
 			</div>
@@ -72,22 +67,22 @@ const ChatMessages = ({chatId, currentUser, otherUserId}: Props) => {
 					h1='Сообщения не найдены...'
 					h3='Отправить привествие?'
 					variant='chat'
-					conversationId={chatId}
+					chatId={chatId}
 					userOneId={currentUser.id}
 					userTwoId={otherUserId}
 				/>
 			)}
-			{hasNextPage && (
+			{hasNextPage && isFetchingNextPage && (
 				<div className='flex justify-center'>
 					{isFetchingNextPage ? (
-						<Loader2 className='h-6 w-6 text-zinc-500 animate-spin my-4' />
+						<Loader />
 					) : (
-						<button
+						<Button
 							onClick={() => fetchNextPage()}
-							className='text-zinc-500 hover:text-zinc-600 dark:text-zinc-400 text-xs my-4 dark:hover:text-zinc-300 transition'
+							className='my-4'
 						>
 							Загрузить прошлые сообщения
-						</button>
+						</Button>
 					)}
 				</div>
 			)}
@@ -102,10 +97,11 @@ const ChatMessages = ({chatId, currentUser, otherUserId}: Props) => {
 								return (
 									<ChatItem
 										key={message.id}
-										deleted={message.deleted}
+										chatId={message.chatId}
+										messageId={message.id}
 										isOwnMessage={isOwnMessage}
 										content={message.content}
-										createdAt={formatDate(new Date(message.createdAt))}
+										createdAt={formatDate(message.createdAt)}
 									/>
 								);
 							}

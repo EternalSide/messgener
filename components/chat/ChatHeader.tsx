@@ -13,21 +13,20 @@ import axios from "axios";
 import {ConnectionStatus} from "./ConnectionStatus";
 import {useModal} from "@/hooks/useModalStore";
 import {useQueryClient} from "@tanstack/react-query";
-import {Conversation} from "@prisma/client";
+import {Chat} from "@prisma/client";
+import {ChatWithUsersAndMessages} from "@/types";
 
 interface Props {
-	authorName: string;
-	authorPic: string | null;
-	variant: "chat" | "savedMessaged";
-	conversationId: string | null;
+	otherUserName: string;
+	otherUserPic: string | null;
+	chatId: string | null;
 	isOwnChat: boolean;
 }
 
 const ChatHeader = ({
-	authorName,
-	authorPic,
-	variant,
-	conversationId,
+	otherUserName,
+	otherUserPic,
+	chatId,
 	isOwnChat,
 }: Props) => {
 	const {onOpen} = useModal();
@@ -35,11 +34,13 @@ const ChatHeader = ({
 
 	const deleteChat = async () => {
 		try {
-			queryClient.setQueriesData({queryKey: ["chats"]}, (chats: any) =>
-				chats.filter((chat: Conversation) => chat.id !== conversationId)
+			queryClient.setQueriesData(
+				{queryKey: ["chats"]},
+				(chats: ChatWithUsersAndMessages[] | undefined) =>
+					chats && chats.filter((chat: Chat) => chat.id !== chatId)
 			);
 
-			await axios.delete(`/api/socket/conversations/${conversationId}`);
+			await axios.delete(`/api/socket/chats/${chatId}`);
 		} catch (e) {
 			console.log(e);
 		}
@@ -52,7 +53,8 @@ const ChatHeader = ({
 				<div
 					onClick={() =>
 						onOpen("userProfilePicture", {
-							imgSrc: authorPic || NO_USER_IMAGE,
+							imgSrc: otherUserPic || NO_USER_IMAGE,
+							name: otherUserName,
 						})
 					}
 					className='h-12 min-w-12 relative cursor-pointer transition hover:opacity-90'
@@ -60,12 +62,12 @@ const ChatHeader = ({
 					<Image
 						className='rounded-full object-top'
 						fill
-						alt={authorName}
-						src={authorPic || NO_USER_IMAGE}
+						alt={otherUserName}
+						src={otherUserPic || NO_USER_IMAGE}
 					/>
 				</div>
 				<div>
-					<h3 className='font-semibold'>{authorName}</h3>
+					<h3 className='font-semibold'>{otherUserName}</h3>
 				</div>
 			</div>
 			<div className='flex items-center gap-3'>
@@ -77,7 +79,7 @@ const ChatHeader = ({
 					<DropdownMenuContent className='w-[270px] px-1.5 py-2 bg-[#fdfdfd] dark:bg-[#242424] opacity-[99%] ml-4 rounded-lg'>
 						<DropdownMenuItem
 							className='flex items-center gap-3'
-							disabled={!conversationId || isOwnChat}
+							disabled={!chatId || isOwnChat}
 							onClick={deleteChat}
 						>
 							<Trash2 className='h-5 w-5 text-neutral-400' /> Удалить чат

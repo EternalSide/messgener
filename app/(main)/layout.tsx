@@ -5,25 +5,23 @@ import {cn} from "@/lib/utils";
 const MainLayout = async ({children}: {children: React.ReactNode}) => {
 	const currentUser = await createProfile();
 
-	let styles = {
-		backgroundImage: currentUser?.chatBackground
-			? `url("${currentUser.chatBackground}")`
-			: "",
-		backgroundRepeat: "no-repeat",
-		backgroundSize: "cover",
-		backgroundPosition: "center",
-	};
-
 	return (
 		<div className='h-full'>
 			<div className='max-lg:hidden'>
 				<LeftSidebar />
 			</div>
 			<div
-				style={styles}
+				style={{
+					backgroundImage: currentUser?.backgroundPic
+						? `url("${currentUser.backgroundPic}")`
+						: "",
+					backgroundRepeat: "no-repeat",
+					backgroundSize: "cover",
+					backgroundPosition: "center",
+				}}
 				className={cn(
 					"max-lg:pl-0 pl-[390px] w-full h-full",
-					!currentUser?.chatBackground && "bg-[#DCF8C6] dark:bg-zinc-900"
+					!currentUser?.backgroundPic && "bg-[#DCF8C6] dark:bg-zinc-900"
 				)}
 			>
 				{children}

@@ -9,7 +9,7 @@ interface Props {
 	src: string;
 	h1: string;
 	h3: string;
-	conversationId?: string | null;
+	chatId?: string | null;
 	userOneId?: string;
 	userTwoId?: string;
 	variant?: "chat" | "home";
@@ -19,7 +19,7 @@ const ChatWelcome = ({
 	src,
 	h1,
 	h3,
-	conversationId,
+	chatId,
 	userOneId,
 	userTwoId,
 	variant,
@@ -30,8 +30,8 @@ const ChatWelcome = ({
 	const sendMessage = async () => {
 		try {
 			const isFirstMessage = await sendMessageToTheUser({
-				conversationId,
-				message: USER_WELCOME_MESSAGE,
+				chatId,
+				content: USER_WELCOME_MESSAGE,
 				userOneId: userOneId as string,
 				userTwoId: userTwoId as string,
 			});

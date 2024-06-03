@@ -1,51 +1,31 @@
-import {Conversation} from "@prisma/client";
-import {createNewConversation} from "./actions/conversation.action";
+import {createNewChat} from "./actions/chat.action";
 import axios from "axios";
 import qs from "query-string";
+import {SendMessageDataType, SendMessageToTheUser} from "@/types";
 
-interface Props {
-	conversationId: string | null | undefined;
-	message: string;
-	userOneId: string;
-	userTwoId: string;
-}
+const sendMessageToTheUser = async (params: SendMessageToTheUser) => {
+	const {chatId, content, userOneId, userTwoId} = params;
 
-const sendMessageToTheUser = async ({
-	conversationId,
-	message,
-	userOneId,
-	userTwoId,
-}: Props) => {
-	const settings: {
-		isFirstMessage: boolean;
-		initialConversation: null | Conversation;
-		initialConversationLocal: null | Conversation;
-	} = {
-		isFirstMessage: conversationId === null,
-		initialConversation: null,
-		initialConversationLocal: null,
+	const data: SendMessageDataType = {
+		isFirstMessage: chatId === null,
+		conversation: null,
 	};
 
 	try {
-		if (settings.isFirstMessage) {
-			settings.initialConversation = await createNewConversation(
-				userOneId,
-				userTwoId
-			);
+		if (data.isFirstMessage) {
+			data.conversation = await createNewChat(userOneId, userTwoId);
 		}
 
 		const url = qs.stringifyUrl({
 			url: "/api/socket/direct-messages",
 			query: {
-				conversationId: settings.isFirstMessage
-					? settings.initialConversation?.id!
-					: conversationId,
+				chatId: data.isFirstMessage ? data.conversation?.id! : chatId,
 			},
 		});
 
-		await axios.post(url, {content: message});
+		await axios.post(url, {content});
 
-		return settings.isFirstMessage;
+		return data.isFirstMessage;
 	} catch (e) {
 		console.log(e);
 	}

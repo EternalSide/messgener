@@ -1,11 +1,10 @@
 "use server";
-
 import {getCurrentUser} from "./user.action";
 import {db} from "../db";
 import {DirectMessage} from "@prisma/client";
 import {MESSAGES_COUNT_FOR_LOAD} from "@/constants";
 
-export const getUserConversations = async () => {
+export const getUserChats = async () => {
 	try {
 		const currentUser = await getCurrentUser();
 
@@ -14,7 +13,7 @@ export const getUserConversations = async () => {
 				id: currentUser?.id!,
 			},
 			include: {
-				conversationsInitiated: {
+				chatsInitiated: {
 					include: {
 						userOne: true,
 						userTwo: true,
@@ -22,11 +21,12 @@ export const getUserConversations = async () => {
 							select: {
 								content: true,
 								createdAt: true,
+								id: true,
 							},
 						},
 					},
 				},
-				conversationsReceived: {
+				chatsReceived: {
 					include: {
 						userOne: true,
 						userTwo: true,
@@ -34,6 +34,7 @@ export const getUserConversations = async () => {
 							select: {
 								content: true,
 								createdAt: true,
+								id: true,
 							},
 						},
 					},
@@ -44,15 +45,11 @@ export const getUserConversations = async () => {
 		let uniqueChats = [];
 
 		const isUserHasChats =
-			chats?.conversationsInitiated.length ||
-			chats?.conversationsReceived.length;
+			chats?.chatsInitiated.length || chats?.chatsReceived.length;
 
 		if (isUserHasChats) {
 			const seenIds = new Set();
-			for (const chat of [
-				...chats?.conversationsInitiated,
-				...chats?.conversationsReceived,
-			]) {
+			for (const chat of [...chats?.chatsInitiated, ...chats?.chatsReceived]) {
 				if (!seenIds.has(chat.id)) {
 					seenIds.add(chat.id);
 					uniqueChats.push(chat);
@@ -66,19 +63,12 @@ export const getUserConversations = async () => {
 	}
 };
 
-export const createNewConversation = async (
-	userOneId: string,
-	userTwoId: string
-) => {
+export const createNewChat = async (userOneId: string, userTwoId: string) => {
 	try {
-		return await db.conversation.create({
+		return await db.chat.create({
 			data: {
 				userOneId,
 				userTwoId,
-			},
-			include: {
-				userOne: true,
-				userTwo: true,
 			},
 		});
 	} catch (e) {
@@ -87,29 +77,26 @@ export const createNewConversation = async (
 	}
 };
 
-export const getConversation = async (
-	memberOneId: string,
-	memberTwoId: string
-) => {
-	let conversation =
-		(await _findConversation(memberOneId, memberTwoId)) ||
-		(await _findConversation(memberTwoId, memberOneId));
+export const getChat = async (userOneId: string, userTwoId: string) => {
+	let chat =
+		(await _findChat(userOneId, userTwoId)) ||
+		(await _findChat(userTwoId, userOneId));
 
-	if (!conversation) {
-		conversation = null;
+	if (!chat) {
+		chat = null;
 	}
 
-	return conversation;
+	return chat;
 };
 
 export const getMessages = async (props: any) => {
 	try {
 		const currentUser = await getCurrentUser();
 		if (!currentUser) {
-			throw new Error("unauthorized");
+			throw new Error("Вы не авторизованы.");
 		}
 
-		const {cursor, conversationId} = props;
+		const {cursor, chatId} = props;
 
 		let messages: DirectMessage[] = [];
 
@@ -121,7 +108,7 @@ export const getMessages = async (props: any) => {
 					id: cursor,
 				},
 				where: {
-					conversationId,
+					chatId,
 				},
 				include: {
 					user: true,
@@ -134,7 +121,7 @@ export const getMessages = async (props: any) => {
 			messages = await db.directMessage.findMany({
 				take: MESSAGES_COUNT_FOR_LOAD,
 				where: {
-					conversationId,
+					chatId,
 				},
 				include: {
 					user: true,
@@ -161,11 +148,11 @@ export const getMessages = async (props: any) => {
 	}
 };
 
-const _findConversation = async (memberOneId: string, memberTwoId: string) => {
+const _findChat = async (userOneId: string, userTwoId: string) => {
 	try {
-		return await db.conversation.findFirst({
+		return await db.chat.findFirst({
 			where: {
-				AND: [{userOneId: memberOneId}, {userTwoId: memberTwoId}],
+				AND: [{userOneId}, {userTwoId}],
 			},
 			include: {
 				userOne: true,

@@ -1,8 +1,6 @@
 "use client";
 import {Menu} from "lucide-react";
-
 import {Sheet, SheetContent, SheetTrigger} from "@/components/ui/sheet";
-
 import LeftSidebar from "@/components/shared/Sidebar/LeftSidebar";
 
 export const MobileSidebar = () => {

@@ -15,10 +15,10 @@ import sendMessageToTheUser from "@/lib/send-message";
 
 interface ChatInputProps {
 	users: User[];
-	conversationId: string | null;
+	chatId: string | null;
 }
 
-export const ChatInput = ({users, conversationId}: ChatInputProps) => {
+export const ChatInput = ({users, chatId}: ChatInputProps) => {
 	const router = useRouter();
 
 	const form = useForm<z.infer<typeof messageSchema>>({
@@ -33,8 +33,8 @@ export const ChatInput = ({users, conversationId}: ChatInputProps) => {
 
 		try {
 			const isFirstMessage = await sendMessageToTheUser({
-				conversationId,
-				message: values.content,
+				chatId,
+				content: values.content,
 				userOneId: users[0].id,
 				userTwoId: users[1].id,
 			});
@@ -59,7 +59,7 @@ export const ChatInput = ({users, conversationId}: ChatInputProps) => {
 							<FormControl>
 								<div className='relative p-4 px-0 pr-2 w-full'>
 									<Input
-										className='px-12 text-base bg-light dark:bg-dark py-8 border-none placeholder:text-base border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-zinc-600 dark:text-zinc-200'
+										className='rounded-2xl px-12 text-base bg-light dark:bg-dark py-8 border-none placeholder:text-base border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-neutral-600 dark:text-neutral-200'
 										placeholder={`Введите сообщение...`}
 										{...field}
 									/>

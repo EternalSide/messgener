@@ -1,13 +1,19 @@
 import {User} from "@prisma/client";
 import {create} from "zustand";
 
-export type ModalType = "editProfile" | "userProfilePicture";
+type ModalType = "editProfile" | "userProfilePicture";
 
-interface ModalStore {
+interface ModalData {
+	imgSrc?: string;
+	name?: string;
+	user?: User;
+}
+
+export interface ModalStore {
 	type: ModalType | null;
-	data: any;
+	data: ModalData;
 	isOpen: boolean;
-	onOpen: (type: ModalType, data?: any) => void;
+	onOpen: (type: ModalType, data?: ModalData) => void;
 	onClose: () => void;
 }
 

@@ -6,28 +6,28 @@ import Link from "next/link";
 import {usePathname} from "next/navigation";
 
 interface Props {
-	authorName: string;
-	authorPic: string | null;
-	authorUsername: string;
+	otherUserName: string;
+	otherUserPic: string | null;
+	otherUserUsername: string;
 	lastMessage?: string;
 	lastMessageTime?: string | null;
 	variant: "chat" | "user";
 }
 
 const ChatCard = ({
-	authorName,
-	authorPic,
-	authorUsername,
+	otherUserName,
+	otherUserPic,
+	otherUserUsername,
 	lastMessage,
 	lastMessageTime,
 	variant,
 }: Props) => {
 	const path = usePathname();
-	const isActive = path === `/chat/${authorUsername}`;
+	const isActive = path === `/chat/${otherUserUsername}`;
 
 	return (
 		<Link
-			href={`/chat/${authorUsername}`}
+			href={`/chat/${otherUserUsername}`}
 			className={cn(
 				"px-3 py-3 rounded-lg flex items-center  transition",
 				isActive
@@ -40,19 +40,19 @@ const ChatCard = ({
 					<Image
 						className='rounded-full object-top'
 						fill
-						alt={authorName}
-						src={authorPic || NO_USER_IMAGE}
+						alt={otherUserName}
+						src={otherUserPic || NO_USER_IMAGE}
 					/>
 				</div>
 				<div className='w-full'>
 					<div className='flex items-start justify-between'>
 						<h3 className={cn("font-semibold", isActive && "text-white")}>
-							{authorName}
+							{otherUserName}
 						</h3>
 						{variant === "chat" && lastMessageTime && (
 							<p
 								className={cn(
-									"text-xs text-neutral-400",
+									"text-xs text-neutral-500",
 									isActive && "text-white"
 								)}
 							>
@@ -63,7 +63,7 @@ const ChatCard = ({
 					{variant === "chat" && (
 						<p
 							className={cn(
-								"font-normal mt-1 line-clamp-1",
+								"font-normal mt-1 line-clamp-1 text-neutral-800 dark:text-neutral-300",
 								isActive && "text-white"
 							)}
 						>
@@ -72,7 +72,7 @@ const ChatCard = ({
 					)}
 					{variant === "user" && (
 						<p className={cn("font-normal mt-1", isActive && "text-white")}>
-							@{authorUsername}
+							@{otherUserUsername}
 						</p>
 					)}
 				</div>

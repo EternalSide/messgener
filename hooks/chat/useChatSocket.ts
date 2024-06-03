@@ -1,38 +1,33 @@
 import {useEffect} from "react";
 import {useQueryClient} from "@tanstack/react-query";
-
 import {useSocket} from "@/providers/SocketProvider";
-import {Conversation, DirectMessage} from "@prisma/client";
+import {Chat, DirectMessage} from "@prisma/client";
 import {useRouter} from "next/navigation";
+import {getSocketKeys, sortChats} from "@/lib/utils";
+import {SocketRes} from "@/types";
 
-type ChatSocketProps = {
-	addKey: string;
-	updateKey: string;
-	queryKey: string;
-	deleteKey: string;
-};
-
-export const useChatSocket = ({
-	addKey,
-	updateKey,
-	queryKey,
-	deleteKey,
-}: ChatSocketProps) => {
+export const useChatSocket = ({chatId}: {chatId: string | null}) => {
 	const {socket} = useSocket();
 	const queryClient = useQueryClient();
 	const router = useRouter();
+	const {
+		deleteChatKey,
+		deleteMessageKey,
+		queryKey,
+		sendMessageKey,
+		updateMessageKey,
+	} = getSocketKeys(chatId);
 
 	useEffect(() => {
 		if (!socket) return;
 
-		socket.on(addKey, ({conversation, message}: any) => {
-			queryClient.setQueryData([queryKey], (conversations: any) => {
-				const isFirst =
-					!conversations ||
-					!conversations.pages ||
-					conversations.pages.length === 0;
-
-				if (isFirst) {
+		socket.on(sendMessageKey, ({chat, message}: SocketRes) => {
+			queryClient.setQueryData([queryKey], (prevMessages: any) => {
+				if (
+					!prevMessages ||
+					!prevMessages.pages ||
+					prevMessages.pages.length === 0
+				) {
 					return {
 						pages: [
 							{
@@ -42,64 +37,95 @@ export const useChatSocket = ({
 					};
 				}
 
-				const newData = [...conversations.pages];
+				const newData = [...prevMessages.pages];
 
 				newData[0] = {
 					...newData[0],
 					items: [message, ...newData[0].items],
 				};
 				return {
-					...conversations,
+					...prevMessages,
 					pages: newData,
 				};
 			});
-			queryClient.setQueryData([`chats`], (oldData: Conversation[]) => {
-				const chatsWihoutCurrent = oldData.filter(
-					(chat: Conversation) => chat.id !== conversation.id
+
+			queryClient.setQueryData([`chats`], (prevChats: Chat[]) => {
+				const chatsWihoutCurrent = prevChats.filter(
+					(c: Chat) => c.id !== chat.id
 				);
 
-				const newConversation = {
-					...conversation,
-					directMessages: [...conversation?.directMessages, message],
+				const updatedChat = {
+					...chat,
+					directMessages: [...chat?.directMessages, message],
 				};
 
-				const newData = [newConversation, ...chatsWihoutCurrent];
+				const newData = [updatedChat, ...chatsWihoutCurrent];
 				return newData;
 			});
 		});
-		// update sidebar
-		socket.on(deleteKey, () => {
-			queryClient.removeQueries({queryKey: [queryKey]});
-			router.refresh();
+
+		socket.on(updateMessageKey, ({chat, message}: SocketRes) => {
+			queryClient.setQueryData([queryKey], (prevMessages: any) => {
+				if (
+					!prevMessages ||
+					!prevMessages.pages ||
+					prevMessages.pages.length === 0
+				)
+					return prevMessages;
+
+				const newData = prevMessages.pages.map((page: any) => {
+					return {
+						...page,
+						items: page.items.filter((item: DirectMessage) => {
+							if (item.id !== message.id) return item;
+						}),
+					};
+				});
+
+				return {
+					...prevMessages,
+					pages: newData,
+				};
+			});
+
+			queryClient.setQueryData([`chats`], (prevChats: Chat[]) => {
+				const chatsWihoutCurrent = prevChats.filter(
+					(c: Chat) => c.id !== chat.id
+				);
+
+				const newMessages = chat?.directMessages.filter(
+					(m: any) => m.id !== message.id
+				);
+
+				const updatedChat = {
+					...chat,
+					directMessages: newMessages,
+				};
+
+				const chats = [...chatsWihoutCurrent, updatedChat];
+
+				const sortedChatsByLastMessage = sortChats(chats);
+				return sortedChatsByLastMessage;
+			});
 		});
 
-		// update message
-		// socket.on(updateKey, (message: DirectMessage) => {
-		// 	queryClient.setQueryData([queryKey], (oldData: any) => {
-		// 		if (!oldData || !oldData.pages || oldData.pages.length === 0)
-		// 			return oldData;
-
-		// 		const newData = oldData.pages.map((page: any) => {
-		// 			return {
-		// 				...page,
-		// 				items: page.items.map((item: DirectMessage) => {
-		// 					if (item.id === message.id) return message;
-		// 					return item;
-		// 				}),
-		// 			};
-		// 		});
-
-		// 		return {
-		// 			...oldData,
-		// 			pages: newData,
-		// 		};
-		// 	});
-		// });
+		socket.on(deleteChatKey, () => {
+			queryClient.removeQueries({queryKey: [queryKey]});
+			return router.refresh();
+		});
 
 		return () => {
-			socket.off(addKey);
-			socket.off(updateKey);
-			socket.off(deleteKey);
+			socket.off(sendMessageKey);
+			socket.off(updateMessageKey);
+			socket.off(deleteMessageKey);
+			socket.off(deleteChatKey);
 		};
-	}, [queryClient, addKey, queryKey, socket, updateKey, deleteKey]);
+	}, [
+		queryClient,
+		sendMessageKey,
+		queryKey,
+		socket,
+		updateMessageKey,
+		deleteMessageKey,
+	]);
 };

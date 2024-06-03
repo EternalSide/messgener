@@ -5,7 +5,12 @@ import {redirect} from "next/navigation";
 import {NextApiRequest} from "next";
 
 export const getAllUsers = async () => {
-	const users = await db.user.findMany();
+	const users = await db.user.findMany({
+		take: 10,
+		orderBy: {
+			createdAt: "asc",
+		},
+	});
 
 	return users;
 };
@@ -20,22 +25,23 @@ export const createProfile = async () => {
 			userId: user?.id,
 		},
 	});
-	// * upload fake data
+	// // * upload fake data
 	// createFakeUsers(profile.id);
+
 	if (profile) return profile;
 
 	const newProfile = await db.user.create({
 		data: {
 			userId: user?.id,
 			name: `${user.firstName}`,
-			imageUrl: user.imageUrl,
+			profilePic: user?.imageUrl,
 			email: user.emailAddresses[0].emailAddress,
 			username: user.username as string,
 		},
 	});
 
 	// Избранное
-	const conversation = await db.conversation.create({
+	const chat = await db.chat.create({
 		data: {
 			userOneId: newProfile.id,
 			userTwoId: newProfile.id,
@@ -49,7 +55,7 @@ export const createProfile = async () => {
 	await db.directMessage.create({
 		data: {
 			content: "Hi World!",
-			conversationId: conversation.id,
+			chatId: chat.id,
 			userId: newProfile.id,
 		},
 	});
@@ -102,13 +108,13 @@ export const updateUser = async (props: {
 	name: string;
 	username: string;
 	userId: string;
-	imageUrl: string;
-	chatBackground: string;
+	profilePic: string;
+	backgroundPic: string;
 }) => {
 	try {
 		const currentUser = await getCurrentUser();
 
-		const {name, username, userId, imageUrl, chatBackground} = props;
+		const {name, username, userId, profilePic, backgroundPic} = props;
 
 		if (!currentUser || currentUser.id !== userId) {
 			throw new Error("Данные не совпадают");
@@ -121,8 +127,8 @@ export const updateUser = async (props: {
 			data: {
 				name,
 				username,
-				imageUrl,
-				chatBackground,
+				profilePic,
+				backgroundPic,
 			},
 		});
 		return user;
