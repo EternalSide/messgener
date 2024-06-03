@@ -62,6 +62,7 @@ const EditProfileModal = () => {
 		form.reset();
 		onClose();
 	};
+
 	const onSubmit = async (values: z.infer<typeof editProfileSchema>) => {
 		setError("");
 		let profilePic = profilePicture ? profilePicture : "";
@@ -73,17 +74,22 @@ const EditProfileModal = () => {
 				const res = await edgestore.userProfilePic.upload({
 					file: profilePic,
 					options: {
-						replaceTargetUrl: data?.user?.profilePic,
+						replaceTargetUrl: data?.user?.profilePic
+							? data.user.profilePic
+							: undefined,
 					},
 				});
 				profilePic = res.url;
 			}
+
 			// Если обновили фон
 			if (typeof backgroundPic !== "string") {
 				const res = await edgestore.userChatBackground.upload({
 					file: backgroundPic,
 					options: {
-						replaceTargetUrl: data?.user?.backgroundPic as string,
+						replaceTargetUrl: data?.user?.backgroundPic
+							? data.user.backgroundPic
+							: undefined,
 					},
 				});
 				backgroundPic = res.url;
@@ -116,22 +122,22 @@ const EditProfileModal = () => {
 					<div className='flex items-center gap-3'>
 						<button onClick={() => setVariant("general")}>
 							<FileText
-								className={cn(variant === "general" && "text-primary")}
+								className={cn(
+									variant === "general" ? "text-primary" : "text-neutral-400"
+								)}
 							/>
 						</button>
 						<button onClick={() => setVariant("images")}>
-							<Image className={cn(variant === "images" && "text-primary")} />
+							<Image
+								className={cn(
+									variant === "images" ? "text-primary" : "text-neutral-400"
+								)}
+							/>
 						</button>
 					</div>
 					<DialogTitle className='text-2xl text-center font-normal'>
 						Редактировать профиль
 					</DialogTitle>
-					<div className='flex justify-center items-center'>
-						<Button>Основное</Button>{" "}
-						<Button className={variant === "images" ? "" : "!rounded-none"}>
-							Оформление
-						</Button>
-					</div>
 				</DialogHeader>
 				<Form {...form}>
 					<form

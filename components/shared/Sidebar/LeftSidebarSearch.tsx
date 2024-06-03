@@ -31,7 +31,6 @@ const LeftSidebarSearch = ({
 				users: queryClient.getQueryData(["users"]),
 				chats: queryClient.getQueryData(["chats"]),
 			});
-			console.log("true");
 		}
 	}, [isUsersLoading, isChatsLoading]);
 

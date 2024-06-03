@@ -4,8 +4,23 @@ import {getCurrentUser, getOtherUser} from "@/lib/actions/user.action";
 import {getChat} from "@/lib/actions/chat.action";
 import {redirect} from "next/navigation";
 import ChatMessages from "@/components/chat/ChatMessages";
+import {Metadata} from "next";
 
-const ChatWithUser = async ({params}: {params: {userId: string}}) => {
+interface Props {
+	params: {
+		userId: string;
+	};
+}
+
+export async function generateMetadata({params}: Props): Promise<Metadata> {
+	const otherUser = await getOtherUser(params.userId);
+
+	return {
+		title: otherUser?.name || "Chatgram",
+	};
+}
+
+const ChatWithUser = async ({params}: Props) => {
 	const currentUser = await getCurrentUser();
 	if (!currentUser) return redirect("/sign-in");
 	// С кем начали чат
