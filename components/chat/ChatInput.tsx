@@ -14,11 +14,18 @@ import {useRouter} from "next/navigation";
 import sendMessageToTheUser from "@/lib/send-message";
 
 interface ChatInputProps {
-	users: User[];
-	chatId: string | null;
+	chat?: {
+		users: User[];
+		chatId: string | null;
+	};
+	channel?: {
+		creatorId: string;
+		channelId: string;
+	};
+	variant: "chat" | "channel";
 }
 
-export const ChatInput = ({users, chatId}: ChatInputProps) => {
+export const ChatInput = ({chat, channel, variant}: ChatInputProps) => {
 	const router = useRouter();
 
 	const form = useForm<z.infer<typeof messageSchema>>({
@@ -32,14 +39,25 @@ export const ChatInput = ({users, chatId}: ChatInputProps) => {
 		form.reset();
 
 		try {
-			const isFirstMessage = await sendMessageToTheUser({
-				chatId,
-				content: values.content,
-				userOneId: users[0].id,
-				userTwoId: users[1].id,
-			});
+			if (variant === "chat") {
+				if (!chat) return;
+				const isFirstMessage = await sendMessageToTheUser({
+					chatId: chat.chatId,
+					content: values.content,
+					userOneId: chat.users[0].id,
+					userTwoId: chat.users[1].id,
+				});
 
-			if (isFirstMessage) return router.refresh();
+				if (isFirstMessage) return router.refresh();
+			}
+			// if (variant === "channel") {
+			// 	if (!channel) return;
+			// 	await createNewPost({
+			// 		channelId: channel.channelId,
+			// 		content: values.content,
+			// 		userId: channel.creatorId,
+			// 	});
+			// }
 		} catch (e) {
 			console.log(e);
 		}

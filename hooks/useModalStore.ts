@@ -1,7 +1,7 @@
 import {User} from "@prisma/client";
 import {create} from "zustand";
 
-type ModalType = "editProfile" | "userProfilePicture";
+type ModalType = "editProfile" | "userProfilePicture" | "createChannel";
 
 interface ModalData {
 	imgSrc?: string;

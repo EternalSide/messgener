@@ -17,8 +17,13 @@ model User {
    profilePic String @db.Text
    backgroundPic String? @db.Text
   directMessages DirectMessage[]
+    channelMessages ChannelMessage[]
   chatsInitiated Chat[] @relation("UserOne")
   chatsReceived Chat[] @relation("UserTwo")
+   channels Channel[]
+
+
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -38,6 +43,44 @@ model Chat {
   @@index([userTwoId])
   @@unique([userOneId, userTwoId])
 }
+
+model Channel {
+  id String @id @default(uuid())
+
+name String 
+description String?
+link String @unique
+picture String?
+type String?
+  creatorId String
+  creator User @relation( fields: [creatorId], references: [id], onDelete: Cascade)
+  posts ChannelMessage[]
+
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([creatorId])
+
+}
+
+model ChannelMessage {
+  id String @id @default(uuid())
+  content String @db.Text
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  channelId String
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([channelId])
+}
+
 
 
 

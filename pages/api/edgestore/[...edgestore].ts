@@ -7,6 +7,7 @@ const es = initEdgeStore.create();
 const edgeStoreRouter = es.router({
 	userProfilePic: es.fileBucket(),
 	userChatBackground: es.fileBucket(),
+	channelPicture: es.fileBucket(),
 });
 export default createEdgeStoreNextHandler({
 	router: edgeStoreRouter,

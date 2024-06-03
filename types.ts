@@ -1,7 +1,7 @@
 import {Server as NetServer, Socket} from "net";
 import {Server as SocketIOServer} from "socket.io";
 import {NextApiResponse} from "next";
-import {Chat, DirectMessage, Prisma} from "@prisma/client";
+import {Channel, Chat, DirectMessage, Prisma} from "@prisma/client";
 
 export type NextApiResponseServerIo = NextApiResponse & {
 	socket: Socket & {
@@ -40,3 +40,6 @@ export interface SocketRes {
 	chat: ChatWithUsersAndMessages;
 	message: DirectMessage;
 }
+export type SidebarCardType = "chat" | "user" | "channel";
+
+export type ChatOrChannel = ChatWithUsersAndMessages | Channel;

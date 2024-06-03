@@ -12,3 +12,10 @@ export const editProfileSchema = z.object({
 		message: "Имя пользователя не может быть меньше 5 символов.",
 	}),
 });
+
+export const createChannelSchema = z.object({
+	name: z.string().min(2, {
+		message: "Название канала не может быть меньше 2 символов.",
+	}),
+	description: z.string().min(1),
+});

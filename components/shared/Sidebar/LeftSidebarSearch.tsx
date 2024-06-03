@@ -1,8 +1,8 @@
 import {findUsers} from "@/lib/actions/user.action";
-import {ChatWithUsersAndMessages, SideBarVariant} from "@/types";
+import {SideBarVariant} from "@/types";
 import {User} from "@prisma/client";
 import {useQueryClient} from "@tanstack/react-query";
-import {Search} from "lucide-react";
+import {Loader2, Search} from "lucide-react";
 import {useEffect, useState} from "react";
 
 interface Props {
@@ -20,6 +20,7 @@ const LeftSidebarSearch = ({
 }: Props) => {
 	const queryClient = useQueryClient();
 	const [searchValue, setSearchValue] = useState("");
+	const [isLoading, setIsLoading] = useState(false);
 	const [initialData, setInitialData] = useState<{chats: any; users: any}>({
 		chats: null,
 		users: null,
@@ -37,28 +38,46 @@ const LeftSidebarSearch = ({
 	useEffect(() => {
 		const fetchSearchResults = async () => {
 			if (sidebarVariant === "users") {
-				const users: User[] = await findUsers({
-					searchQuery:
-						searchValue[0] === "@"
-							? searchValue.slice(1).trim()
-							: searchValue.trim(),
-				});
-				queryClient.setQueryData(["users"], () => users);
+				try {
+					setIsLoading(true);
+					const users: User[] = await findUsers({
+						searchQuery:
+							searchValue[0] === "@"
+								? searchValue.slice(1).trim()
+								: searchValue.trim(),
+					});
+					queryClient.setQueryData(["users"], () => users);
+				} catch (e) {
+				} finally {
+					setIsLoading(false);
+				}
 			}
 
 			if (sidebarVariant === "chats") {
-				const filteredChats = initialData.chats.filter(
-					(chat: ChatWithUsersAndMessages) => {
+				const filteredChats = initialData.chats.filter((chat: any) => {
+					let name;
+					let link;
+					const isChannel = !!chat?.creatorId;
+					if (!isChannel) {
 						const otherUser =
 							currentUserId === chat.userOneId ? chat.userTwo : chat.userOne;
-						const value = searchValue.trim().toLowerCase();
-						const searchCondition =
-							otherUser.name.toLowerCase().includes(value) ||
-							otherUser?.username.toLowerCase().includes(value);
-
-						if (searchCondition) return chat;
+						name = otherUser.name;
+						link = otherUser?.username;
+					} else {
+						name = chat.name;
+						link = chat.link;
 					}
-				);
+					const filteredV = searchValue.trim().toLowerCase();
+
+					const value = filteredV.startsWith("@")
+						? filteredV.slice(1)
+						: filteredV;
+					const searchCondition =
+						name.toLowerCase().includes(value) ||
+						link.toLowerCase().includes(value);
+
+					if (searchCondition) return chat;
+				});
 				queryClient.setQueryData(["chats"], () => filteredChats);
 			}
 		};
@@ -88,7 +107,12 @@ const LeftSidebarSearch = ({
 
 	return (
 		<div className='bg-neutral-200 dark:bg-[#2c2c2c] flex h-[45px] flex-1 items-center rounded-3xl px-4 w-full'>
-			<Search className='h-6 w-6 text-neutral-400' />
+			{isLoading ? (
+				<Loader2 className='h6 w-6 text-primary animate-spin' />
+			) : (
+				<Search className='h-6 w-6 text-neutral-400' />
+			)}
+
 			<input
 				value={searchValue}
 				onChange={onChange}

@@ -1,10 +1,10 @@
 import {MotionDiv} from "@/components/shared/MotionDiv";
-import ChatCard from "@/components/chat/ChatCard";
+import SidebarCard from "@/components/shared/Sidebar/SidebarCard";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {sidebarAnimations} from "@/constants";
-import {formatDate} from "@/lib/utils";
+import {generateChatData} from "@/lib/utils";
 import {ChatWithUsersAndMessages, SideBarVariant} from "@/types";
-import {User} from "@prisma/client";
+import {Channel, User} from "@prisma/client";
 
 interface Props {
 	currentUser: User;
@@ -32,44 +32,27 @@ const LeftSidebarContent = ({
 			<ScrollArea className='mt-2 px-2.5 flex flex-col flex-1 h-full'>
 				{sidebarVariant === "users" &&
 					users.map((user: User) => (
-						<ChatCard
+						<SidebarCard
 							key={user.id}
-							otherUserName={user.name}
-							otherUserPic={user?.profilePic}
-							otherUserUsername={user.username}
+							title={user.name}
+							picture={user?.profilePic}
+							link={user.username}
 							variant='user'
 						/>
 					))}
 				{sidebarVariant === "chats" && (
 					<ul>
-						{chats.map((chat: ChatWithUsersAndMessages) => {
-							const lastMessage =
-								chat?.directMessages[chat?.directMessages?.length - 1];
-							const otherUser =
-								chat.userOne.id === currentUser.id
-									? chat.userTwo
-									: chat.userOne;
+						{chats.map((chat: ChatWithUsersAndMessages | Channel) => {
+							const data = generateChatData(chat, currentUser);
 							return (
-								<ChatCard
-									key={otherUser.id}
-									otherUserName={
-										otherUser.name === currentUser?.name
-											? "Избранное"
-											: otherUser.name
-									}
-									otherUserPic={
-										otherUser.name === currentUser?.name
-											? currentUser?.profilePic
-											: otherUser.profilePic
-									}
-									otherUserUsername={otherUser.username}
-									lastMessage={lastMessage?.content}
-									lastMessageTime={
-										lastMessage?.createdAt
-											? formatDate(lastMessage.createdAt)
-											: null
-									}
-									variant='chat'
+								<SidebarCard
+									key={chat.id}
+									title={data.title}
+									picture={data.picture}
+									link={data.link}
+									lastMessage={data.lastMessage}
+									lastMessageTime={data.lastMessageTime}
+									variant={data.variant}
 								/>
 							);
 						})}

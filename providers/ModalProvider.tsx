@@ -1,4 +1,5 @@
 "use client";
+import CreateChannelModal from "@/components/modals/CreateChannelModal";
 import EditProfileModal from "@/components/modals/EditProfileModal";
 import UserPictureModal from "@/components/modals/UserPictureModal";
 import {useEffect, useState} from "react";
@@ -16,6 +17,7 @@ export const ModalProvider = () => {
 		<>
 			<EditProfileModal />
 			<UserPictureModal />
+			<CreateChannelModal />
 		</>
 	);
 };

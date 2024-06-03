@@ -11,6 +11,7 @@ import {
 	LogOut,
 	Menu,
 	MessageCircleIcon,
+	Microwave,
 	Moon,
 	Settings,
 	Star,
@@ -70,6 +71,12 @@ const LeftSidebarMenu = ({
 					<Users className='h-5 w-5 text-neutral-400' /> Пользователи
 				</DropdownMenuItem>
 				<DropdownMenuItem
+					onClick={() => onOpen("createChannel")}
+					className='flex items-center gap-4'
+				>
+					<Microwave className='h-5 w-5 text-neutral-400' /> Создать канал
+				</DropdownMenuItem>
+				<DropdownMenuItem
 					onClick={() => router.push(`/chat/${currentUser.username}`)}
 					className='flex items-center gap-4'
 				>
@@ -98,16 +105,18 @@ const LeftSidebarMenu = ({
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={() => onOpen("editProfile", {user: currentUser})}
+					className='flex items-center gap-4'
 				>
-					<div className='flex items-center gap-4'>
-						<Settings className='h-5 w-5 text-neutral-400' /> Настройки
-					</div>
+					<Settings className='h-5 w-5 text-neutral-400' /> Настройки
 				</DropdownMenuItem>
-				<DropdownMenuItem onClick={(e) => e.preventDefault()}>
+				<DropdownMenuItem
+					className='flex items-center gap-4'
+					onClick={(e) => e.preventDefault()}
+				>
 					<SignOutButton>
-						<div className='flex items-center gap-4 w-full'>
+						<>
 							<LogOut className='h-5 w-5 text-neutral-400' /> Выйти
-						</div>
+						</>
 					</SignOutButton>
 				</DropdownMenuItem>
 			</DropdownMenuContent>

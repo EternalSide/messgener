@@ -15,19 +15,24 @@ import {useModal} from "@/hooks/useModalStore";
 import {useQueryClient} from "@tanstack/react-query";
 import {Chat} from "@prisma/client";
 import {ChatWithUsersAndMessages} from "@/types";
+import {Button} from "../ui/button";
 
 interface Props {
-	otherUserName: string;
-	otherUserPic: string | null;
+	title: string;
+	picture: string | null;
 	chatId: string | null;
-	isOwnChat: boolean;
+	isOwnChat?: boolean;
+	type: "channel" | "chat";
+	isCreator?: boolean;
 }
 
 const ChatHeader = ({
-	otherUserName,
-	otherUserPic,
+	title,
+	picture,
 	chatId,
 	isOwnChat,
+	type,
+	isCreator,
 }: Props) => {
 	const {onOpen} = useModal();
 	const queryClient = useQueryClient();
@@ -53,8 +58,8 @@ const ChatHeader = ({
 				<div
 					onClick={() =>
 						onOpen("userProfilePicture", {
-							imgSrc: otherUserPic || NO_USER_IMAGE,
-							name: otherUserName,
+							imgSrc: picture || NO_USER_IMAGE,
+							name: title,
 						})
 					}
 					className='h-12 min-w-12 relative cursor-pointer transition hover:opacity-90'
@@ -62,30 +67,40 @@ const ChatHeader = ({
 					<Image
 						className='rounded-full object-top'
 						fill
-						alt={otherUserName}
-						src={otherUserPic || NO_USER_IMAGE}
+						alt={title}
+						src={picture || NO_USER_IMAGE}
 					/>
 				</div>
 				<div>
-					<h3 className='font-semibold'>{otherUserName}</h3>
+					<h3 className='font-semibold'>{title}</h3>
+					{type === "channel" && (
+						<p className='text-sm text-neutral-600 dark:text-neutral-400'>
+							0 участников
+						</p>
+					)}
 				</div>
 			</div>
 			<div className='flex items-center gap-3'>
-				<ConnectionStatus />
-				<DropdownMenu>
-					<DropdownMenuTrigger>
-						<Settings className='h-6 w-6 text-neutral-400' />
-					</DropdownMenuTrigger>
-					<DropdownMenuContent className='w-[270px] px-1.5 py-2 bg-[#fdfdfd] dark:bg-[#242424] opacity-[99%] ml-4 rounded-lg'>
-						<DropdownMenuItem
-							className='flex items-center gap-3'
-							disabled={!chatId || isOwnChat}
-							onClick={deleteChat}
-						>
-							<Trash2 className='h-5 w-5 text-neutral-400' /> Удалить чат
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
+				{type === "chat" && <ConnectionStatus />}
+				{type === "channel" && (
+					<Button className='px-6 rounded-xl text-base'>Вступить</Button>
+				)}
+				{type === "chat" && (
+					<DropdownMenu>
+						<DropdownMenuTrigger>
+							<Settings className='h-6 w-6 text-neutral-400' />
+						</DropdownMenuTrigger>
+						<DropdownMenuContent className='w-[270px] px-1.5 py-2 bg-[#fdfdfd] dark:bg-[#242424] opacity-[99%] ml-4 rounded-lg'>
+							<DropdownMenuItem
+								className='flex items-center gap-3'
+								disabled={!chatId || isOwnChat}
+								onClick={deleteChat}
+							>
+								<Trash2 className='h-5 w-5 text-neutral-400' /> Удалить чат
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				)}
 			</div>
 		</div>
 	);

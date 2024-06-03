@@ -16,6 +16,7 @@ export const getUserChats = async () => {
 				id: currentUser?.id!,
 			},
 			include: {
+				channels: true,
 				chatsInitiated: {
 					include: {
 						userOne: true,
@@ -28,6 +29,7 @@ export const getUserChats = async () => {
 							},
 						},
 					},
+					take: 6,
 				},
 				chatsReceived: {
 					include: {
@@ -41,6 +43,7 @@ export const getUserChats = async () => {
 							},
 						},
 					},
+					take: 6,
 				},
 			},
 		});
@@ -48,19 +51,45 @@ export const getUserChats = async () => {
 		let uniqueChats = [];
 
 		const isUserHasChats =
-			chats?.chatsInitiated.length || chats?.chatsReceived.length;
+			chats?.chatsInitiated || chats?.chatsReceived || chats?.channels;
+
+		const defineLastTime = (chat: any) => {
+			let lastMessageTime;
+			const isChannel = !!chat?.creatorId;
+			if (isChannel) {
+				lastMessageTime = chat.createdAt;
+			} else {
+				lastMessageTime =
+					chat?.directMessages.length > 0
+						? chat.directMessages[chat.directMessages.length - 1].createdAt
+						: "";
+			}
+			return lastMessageTime;
+		};
 
 		if (isUserHasChats) {
 			const seenIds = new Set();
-			for (const chat of [...chats?.chatsInitiated, ...chats?.chatsReceived]) {
+			for (const chat of [
+				...chats?.chatsInitiated,
+				...chats?.chatsReceived,
+				...chats?.channels,
+			]) {
 				if (!seenIds.has(chat.id)) {
 					seenIds.add(chat.id);
-					uniqueChats.push(chat);
+					uniqueChats.push({
+						...chat,
+						lastMessageTime: defineLastTime(chat),
+					});
 				}
 			}
 		}
 
-		return uniqueChats;
+		return uniqueChats?.sort((a: any, b: any) => {
+			return (
+				new Date(b.lastMessageTime).getTime() -
+				new Date(a.lastMessageTime).getTime()
+			);
+		});
 	} catch (e) {
 		throw e;
 	}
@@ -92,7 +121,7 @@ export const getChat = async (userOneId: string, userTwoId: string) => {
 	return chat;
 };
 
-export const getMessages = async (params: {cursor: string; chatId: string}) => {
+export const getMessages = async (params: any) => {
 	try {
 		const currentUser = await getCurrentUser();
 		if (!currentUser) {

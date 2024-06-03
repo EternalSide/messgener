@@ -37,10 +37,11 @@ const ChatWithUser = async ({params}: Props) => {
 	return (
 		<div className='flex flex-col h-full'>
 			<ChatHeader
-				otherUserName={isOwnChat ? "Избранное" : otherUser.name}
-				otherUserPic={otherUser?.profilePic}
+				title={isOwnChat ? "Избранное" : otherUser.name}
+				picture={otherUser?.profilePic}
 				chatId={chat ? chat.id : null}
 				isOwnChat={isOwnChat}
+				type='chat'
 			/>
 			<div className='max-w-[700px] w-full mx-auto max-[1200px]:px-4 flex-1 flex flex-col overflow-y-auto '>
 				<ChatMessages
@@ -50,8 +51,11 @@ const ChatWithUser = async ({params}: Props) => {
 				/>
 
 				<ChatInput
-					users={[currentUser, otherUser]}
-					chatId={chat ? chat.id : null}
+					chat={{
+						users: [currentUser, otherUser],
+						chatId: chat ? chat.id : null,
+					}}
+					variant='chat'
 				/>
 			</div>
 		</div>
