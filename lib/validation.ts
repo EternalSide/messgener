@@ -6,9 +6,9 @@ export const messageSchema = z.object({
 
 export const editProfileSchema = z.object({
 	name: z.string().min(2, {
-		message: "name must be at least 2 characters.",
+		message: "Имя не может быть меньше 2 символов.",
 	}),
 	username: z.string().min(5, {
-		message: "username must be at least 5 characters.",
+		message: "Имя пользователя не может быть меньше 5 символов.",
 	}),
 });

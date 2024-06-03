@@ -30,7 +30,7 @@ export const createProfile = async () => {
 
 	if (profile) return profile;
 
-	const newProfile = await db.user.create({
+	const newUser = await db.user.create({
 		data: {
 			userId: user?.id,
 			name: `${user.firstName}`,
@@ -40,15 +40,10 @@ export const createProfile = async () => {
 		},
 	});
 
-	// Избранное
 	const chat = await db.chat.create({
 		data: {
-			userOneId: newProfile.id,
-			userTwoId: newProfile.id,
-		},
-		include: {
-			userOne: true,
-			userTwo: true,
+			userOneId: newUser.id,
+			userTwoId: newUser.id,
 		},
 	});
 
@@ -56,11 +51,11 @@ export const createProfile = async () => {
 		data: {
 			content: "Hi World!",
 			chatId: chat.id,
-			userId: newProfile.id,
+			userId: newUser.id,
 		},
 	});
 
-	return newProfile;
+	return newUser;
 };
 
 export const getCurrentUser = async () => {
@@ -104,7 +99,7 @@ export const getOtherUser = async (userId: string) => {
 	}
 };
 
-export const updateUser = async (props: {
+export const updateUser = async (data: {
 	name: string;
 	username: string;
 	userId: string;
@@ -114,7 +109,7 @@ export const updateUser = async (props: {
 	try {
 		const currentUser = await getCurrentUser();
 
-		const {name, username, userId, profilePic, backgroundPic} = props;
+		const {name, username, userId, profilePic, backgroundPic} = data;
 
 		if (!currentUser || currentUser.id !== userId) {
 			throw new Error("Данные не совпадают");

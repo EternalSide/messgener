@@ -7,6 +7,9 @@ import {MESSAGES_COUNT_FOR_LOAD} from "@/constants";
 export const getUserChats = async () => {
 	try {
 		const currentUser = await getCurrentUser();
+		if (!currentUser) {
+			throw new Error("Вы не авторизованы.");
+		}
 
 		const chats = await db.user.findUnique({
 			where: {
@@ -89,14 +92,14 @@ export const getChat = async (userOneId: string, userTwoId: string) => {
 	return chat;
 };
 
-export const getMessages = async (props: any) => {
+export const getMessages = async (params: {cursor: string; chatId: string}) => {
 	try {
 		const currentUser = await getCurrentUser();
 		if (!currentUser) {
 			throw new Error("Вы не авторизованы.");
 		}
 
-		const {cursor, chatId} = props;
+		const {cursor, chatId} = params;
 
 		let messages: DirectMessage[] = [];
 
